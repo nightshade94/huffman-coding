@@ -1,0 +1,92 @@
+\section{Compare with other Compression Algorithms}
+\subsection{Introduce}
+Huffman Coding is a solid foundation for data compression. While being fundamental, its performance and suitability must be evaluated against other lossless compression algorithms to have a clear picture of the world of compression algorithms. This section provides a comprehensive comparison between Huffman Coding and other significant lossless compression algorithms, especially RLE (Run-Length Encoding), Arithmetic Coding, and the Lempel-Ziv (LZ) family of methods. This evaluation will primarily focus on key performance metrics, including compression efficiency, computational complexity (encoding/decoding speeds), adaptability to varying data characteristics, and associated overhead.\newline
+Let's assume that \(N\) represents the length of the input data and \(M\) speaks for the size of the character set.
+\subsection{Huffman Coding vs RLE}
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \setlength{\tabcolsep}{8pt} % Giảm khoảng cách giữa các cột để tiết kiệm không gian
+    \rowcolors{2}{gray!15}{white}
+    \begin{tabular}{|p{0.15\linewidth}|p{0.35\linewidth}|p{0.35\linewidth}|}
+        \hline
+        \rowcolor{gray!30}
+        \textbf{Feature} & \textbf{Huffman Coding} & \textbf{Run-Length Encoding(RLE)}\\
+        \hline
+        Principle & Variable-length codes based on symbol frequencies. & Replaces repeated substrings with references.\\\hline
+        Complexity & Time:   O(N + M log M). \newline Space: O(M). &Time:   O(N). \newline Space: O(N).\\\hline
+        Adaptivity & Static version is not adaptive; adaptive versions exist but are more complex. & Not inherently adaptive.\\\hline
+        Overhead & Requires storing the Huffman tree (or frequencies) to decode. & Minimal overhead (just the counts).\\\hline
+        Use Cases & General-purpose compression, JPEG, MP3, GZIP. & Simple images (e.g., fax), data with long runs.\\\hline
+        Strengths & Good overall compression, widely supported. & Very fast and simple for suitable data.\\\hline
+        Weaknesses & Can’t take advantage of correlations betweens symbols. & Poor compression for data without long runs.\\\hline
+    \end{tabular}
+    \caption{Huffman Coding vs RLE}
+    \label{tab:Huffman_vs_RLE}
+\end{table}
+\subsection{Huffman Coding vs Arithmetic Coding}  
+\begin{table}[H]  
+    \centering  
+    \renewcommand{\arraystretch}{1.5} % Giảm khoảng cách giữa các dòng  
+    \setlength{\tabcolsep}{8pt} % Giảm khoảng cách giữa các cột  
+    \rowcolors{2}{gray!15}{white}   
+    \begin{tabular}{|p{0.15\linewidth}|p{0.35\linewidth}|p{0.35\linewidth}|}  
+    \hline  
+    \rowcolor{gray!30}  
+        \textbf{Feature} & \textbf{Huffman Coding} & \textbf{Arithmetic Coding}\\\hline  
+        Principle & Variable-length codes based on symbol frequencies. & Encodes the entire message as a single fraction.\\\hline  
+        Complexity & Time:   O(N + M log M). \newline Space: O(M). & Time: O(N + M). \newline Space: O(M).\\\hline  
+        Adaptivity & Static version is not adaptive; adaptive versions exist but are more complex. & Can be easily made adaptive. \\\hline  
+        Overhead & Requires storing the Huffman tree (or frequencies) to decode. & Minimal overhead (typically just model parameters).\\\hline  
+        Use Cases & General-purpose compression, JPEG, MP3, GZIP. & JPEG 2000, JBIG2, high-performance compression.\\\hline  
+        Strengths & Good overall compression, widely supported. & Better compression, especially for small alphabets.\\\hline  
+        Weaknesses & Can’t take advantage of correlations between symbols. & More complex, slower encoding/decoding.\\\hline  
+    \end{tabular}  
+    \caption{Huffman Coding vs Arithmetic Coding}  
+    \label{tab:Huffman_vs_Arithmetic}  
+\end{table}  
+
+\subsection{Huffman Coding vs Lempel-Ziv Algorithms (LZ77, LZ78, LZW)}  
+\begin{table}[H]  
+    \centering   
+    \renewcommand{\arraystretch}{1.5} % Giảm khoảng cách giữa các dòng  
+    \setlength{\tabcolsep}{8pt} % Giảm khoảng cách giữa các cột  
+    \rowcolors{2}{gray!15}{white}  
+    \begin{tabular}{|p{0.15\linewidth}|p{0.35\linewidth}|p{0.35\linewidth}|}  
+    \hline  
+    \rowcolor{gray!30}  
+        \textbf{Feature} & \textbf{Huffman Coding} & \textbf{Lempel-Ziv Algorithms}\\\hline  
+        Principle & Variable-length codes based on symbol frequencies. & Replaces repeated substrings with references. \\\hline  
+        Complexity & Time:   O(N + M log M). \newline Space: O(M). & Time: O(N). \newline Space: O(N).\\\hline  
+        Adaptivity & Static version is not adaptive; adaptive versions exist but are more complex. & Adaptive, learns patterns in the data. \\\hline  
+        Overhead & Requires storing the Huffman tree (or frequencies) to decode. & Minimal overhead (dictionary is built dynamically).\\\hline  
+        Use Cases & General-purpose compression, JPEG, MP3, GZIP. & GZIP, ZIP, PNG (LZ77 + Huffman), GIF (LZW).\\\hline  
+        Strengths & Good overall compression, widely supported. & Good for data with repeating patterns, adaptive.\\\hline  
+        Weaknesses & Can’t take advantage of correlations between symbols. & Can be slower than Huffman.\\\hline  
+    \end{tabular}  
+    \caption{Huffman Coding vs Lempel-Ziv Algorithms}  
+    \label{tab:Huffman_vs_Lempel-Ziv}  
+\end{table}  
+\subsection{Huffman Coding vs Burrows-Wheeler Transform (BWT)}  
+\begin{table}[H]  
+    \centering  
+    \renewcommand{\arraystretch}{1.5} % Giảm khoảng cách giữa các dòng  
+    \setlength{\tabcolsep}{8pt} % Giảm khoảng cách giữa các cột  
+    \rowcolors{2}{gray!15}{white}   
+    \begin{tabular}{|p{0.15\linewidth}|p{0.35\linewidth}|p{0.35\linewidth}|}  
+    \hline  
+        \rowcolor{gray!30}  
+        \textbf{Feature} & \textbf{Huffman Coding} & \textbf{Burrows-Wheeler Transform}\\\hline  
+        Principle & Variable-length codes based on symbol frequencies. & Reorders data to group similar characters together. Not a compression algorithm itself, but a preprocessor.\\\hline  
+        Complexity & Time: O(N + M log M). \newline Space: O(M). & Time: O(N log N) \newline Space: O(N).\\\hline  
+        Adaptivity & Static version is not adaptive; adaptive versions exist but are more complex. & Not applicable. \\\hline  
+        Overhead & Requires storing the Huffman tree (or frequencies) to decode. & Minimal overhead, needs to store the index of the original string.\\\hline  
+        Use Cases & General-purpose compression, JPEG, MP3, GZIP. & bzip2\\\hline  
+        Strengths & Good overall compression, widely supported. & Very high compression ratio, especially for text.\\\hline  
+        Weaknesses & Can’t take advantage of correlations between symbols. & Relatively slow.\\\hline  
+    \end{tabular}  
+    \caption{Huffman Coding vs Burrows-Wheeler Transform}  
+    \label{tab:Huffman_vs_BWT}  
+\end{table}  
+\subsection{Conclusion}
+There are no perfect compression algorithms, the performance of these compression algorithms is heavily dependent on the input data and specific requirements (compression ratio, speed, memory usage, etc.). Huffman Coding is a versatile and widely used technique, often used with other algorithms to create a more complex compression scheme (JPEG, GZIP, DEFLATE).

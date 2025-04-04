@@ -1,0 +1,111 @@
+\section{Introduction to Compression}
+\subsection{Overview of Compression}
+Data is a crucial part of the digital world, representing information in various forms such as text, images, audio, and video. It serves as the backbone of modern computing, communication, analysis, and decision-making across several industries. The rapid growth of data in recent years, has led to the development of advanced storage, processing, and compression techniques to optimize efficiency and accessibility. Proper data management is essential for ensuring security, accuracy, and usability in applications ranging from AI to cloud computing.\newline
+Data compression is a type of data management that helps reduce the size of data without (or with minimal) loss of information. In the era of G.AI where a large amount of data can be generated in a blink of an eye, data compression is not just desirable but an absolute necessity.
+\subsection{History of Compression}
+The history of data compression dates back to the early days of computing, driven by the need to store and transmit data efficiently since the storage device and bandwidth are limited resources. One of the first cases of data compression is Morse code which assigns shorter code to frequent use letters. In 1948, Claude Shannon laid the foundation for data compression with their groundbreaking work on information theory, introducing the concept of entropy and establishing the theoretical limits on lossless compression. In 1952, Huffman Coding was introduced by David A. Huffman, an optimal algorithm for generating prefix-free, variable-length codes. The 1970s and 80s brought the Lempel-Ziv family of algorithms (LZ77, LZ78, and LZW), which introduced dictionary-based methods and became widely adopted in various applications. The 1990s saw the rise of JPEG and MP3, which introduced lossy compression techniques for images and audio, balancing quality and file size. Today, data compression research continues to advance, exploring areas like deep learning-based compression and specialized algorithms for emerging data types, reflecting the ongoing quest to manage the ever-expanding volume of digital information.
+\subsection{Type of Compression}
+Data compression techniques can be broadly classified into two fundamental categories: lossless and lossy compression.
+\begin{itemize}
+    \item \textbf{Lossless Compression}: These techniques guarantee perfect reconstruction of the original data after decompression. No information is lost in the process. Lossless compression is essential for applications where data integrity is paramount, such as text documents, executable files, and medical images. Examples include Run-Length Encoding (RLE), Huffman Coding, and the Lempel-Ziv family of algorithms.
+    \item \textbf{Lossy Compression}: These techniques achieve higher compression ratios by discarding some information that is deemed less important or imperceptible. The decompressed data is an approximation of the original, but the loss is often acceptable in applications like image, audio, and video streaming, where minor imperfections are tolerable. Examples include JPEG for images, MP3 for audio, and MPEG for video.
+\end{itemize}
+Another distinction is between symmetric and asymmetric compression. Symmetric compression algorithms have similar computational complexity for both encoding and decoding, while asymmetric algorithms have significantly different complexities (typically, encoding is much more complex than decoding).
+\subsection{Lossless Compression}
+\begin{enumerate}[label=\textbf{\Alph*.}]
+    \item \textbf{Run-Length Encoding (RLE)} \begin{itemize}
+        \item Basic principles: replacing sequences of identical data with a count and the repeated value.
+        \item Example: "AAAAABBBCC" -> "5A3B2C"
+        \item Application: Simple images, fax, text with repetitive patterns.
+        \item Advantages: Simple, fast.
+        \item Disadvantages: Not effective for data with little repetition.
+    \end{itemize}
+    \item \textbf{Huffman Coding} \begin{itemize}
+        \item Basic principle: variable-length codes based on symbol frequencies (shorter codes for more frequent symbols).
+        \item Example: "BEEBE BEE" -> 0111011000111 (in bit representation)
+        \item Application: JPEG, MP3, GZIP, general-purpose compression.
+        \item Advantages: Optimal for symbol-by-symbol encoding, widely used.
+        \item Disadvantages: Requires frequency information (static) or adaptation (adaptive).
+    \end{itemize}
+    \item \textbf{Arithmetic Coding} \begin{itemize}
+        \item Principle: Encodes the entire message as a single fraction within the range [0, 1). Subdivides the range based on symbol probabilities.
+        \item Example: “ABBC” -> 0.140625
+        \item Applications: JPEG 2000, JBIG2, high-performance compression.
+        \item Advantages: Often achieves better compression than Huffman coding, especially for small alphabets.
+        \item Disadvantages: More complex to implement, computationally more expensive.
+    \end{itemize}
+    \item \textbf{Dictionary-Based Methods (Lempel-Ziv Family)} \begin{itemize}
+        \item  LZ77: \begin{itemize}
+            \item Principle: Replaces repeated substrings with references to earlier occurrences within a sliding window.
+            \item Applications: GZIP, DEFLATE (used in ZIP, PNG).
+        \end{itemize} 
+        \item LZ78: \begin{itemize}
+            \item Principle: Builds a dictionary of previously seen substrings dynamically.
+        \end{itemize}
+        \item LZW (Lempel-Ziv-Welch): \begin{itemize}
+            \item Principle: A variation of LZ78 that is widely used.
+            \item Applications: GIF, TIFF, early Unix "compress" utility.
+        \end{itemize}
+        \item Advantages: Adaptive, good for text and data with repeating patterns.
+        \item Disadvantages: Can be slower than simpler methods.
+    \end{itemize}
+    \newpage
+    \item \textbf{Burrows-Wheeler Transform (BWT)} \begin{itemize}
+        \item Principle: Reorders the input data to group similar characters together, making it more compressible by other methods (e.g., RLE, Move-to-Front, Huffman). It's a reversible transformation.
+        \item Applications: bzip2 (high-performance compression).
+        \item Advantages: Can achieve very high compression ratios, especially for text.
+        \item Disadvantages: Relatively slow.
+    \end{itemize}
+    \item \textbf{Others} \begin{itemize}
+        \item Prediction by Partial Matching (PPM)
+        \item Context Tree Weighting (CTW)
+    \end{itemize}
+\end{enumerate}
+\subsection{Lossy Compression}
+\begin{enumerate}[label=\textbf{\Alph*.}]
+    \item \textbf{Quantization} \begin{itemize}
+        \item Principle: Reducing the precision of data by mapping a range of values to a single representative value.
+        \item Applications: Fundamental to most lossy compression methods.
+    \end{itemize}
+    \item \textbf{Transform Coding} \begin{itemize}
+        \item Principle: Transforming the data into a different domain (e.g., frequency domain) where it can be more efficiently represented and quantized.
+        \item Discrete Cosine Transform (DCT): \begin{itemize}
+            \item Principle: Widely used in image and video compression. Decomposes the data into different frequency components.
+            \item Applications: JPEG, MPEG, H.264.
+        \end{itemize}
+        \item Discrete Wavelet Transform (DWT): \begin{itemize}
+            \item Principle: Provides a multi-resolution representation of the data.
+            \item Applications: JPEG 2000, image and video compression.
+        \end{itemize}
+        \item Advantages: Allows for significant compression by discarding less important frequency components.
+        \item Disadvantages: Introduces irreversible loss of information.
+    \end{itemize}
+    \item \textbf{Vector Quantization} \begin{itemize}
+        \item Principle: Groups data into vectors and represents each vector with a codeword from a codebook.
+        \item Applications: Image and speech compression.
+    \end{itemize}
+    \item \textbf{Fractal Compression}\begin{itemize}
+        \item Principle: Exploits self-similarity in images to represent parts of the image with transformations of other parts.
+        \item Applications: Image compression (historically more popular).
+    \end{itemize}
+\end{enumerate}
+\subsection{Application}
+\begin{enumerate}[label=\textbf{\Alph*.}]
+    \item \textbf{Multimedia compression} \begin{itemize}
+        \item Image compression: JPEG, JPEG 2000, GIF, PNG, WebP.
+        \item Audio compression: MP3, AAC, FLAC, Opus, Vorbis.
+        \item Video compression: MPEG-1, MPEG-2, MPEG-4, H.264 (AVC), H.265 (HEVC), AV1, VP9.
+    \end{itemize}
+    \item \textbf{Text compression} \begin{itemize}
+        \item GZIP, bzip2, general-purpose archiving tools
+    \end{itemize}
+    \item \textbf{Others} \begin{itemize}
+        \item File system compression
+        \item Backup and Archiving.
+        \item Database Compression
+        \item Network Compression
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Conclusion} % có nên để lại k?
+The future of data compression is promised to be driven by artificial intelligence, quantum computing. Machine learning based algorithms are already showing promise, using neural networks to understand the patterns in data to achieve a better compression rate than traditional methods. Autoencoders and generative models are being explored to learn more efficient data representations, adapting to the specific characteristics of different data types. New compression techniques now include encryption, making data both smaller and more secure, which is vital given rising cybersecurity concerns. As data continues to expand, the field of data compression will remain vital, constantly evolving to find new and more effective ways to store and transmit information in an increasingly data-driven world.

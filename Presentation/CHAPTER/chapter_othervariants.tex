@@ -1,0 +1,29 @@
+\section{Other variants of Huffman coding}
+\subsection{n-ary Huffman Coding:}
+\begin{itemize}
+    \item The n-ary Huffman coding is a version of the algorithm that uses the numbers from 0 to n - 1 to encode symbols and build a tree. Similar to the original version to build a Huffman tree, except that a node now has maximum n child and the n least frequency symbols are taken together instead of 2. 
+    \item This variant is useful in the following scenarios:
+    \begin{itemize}
+        \item \textbf{High-speed data transmission:} With the higher code character, the Huffman tree depth is decreased, so it optimizes numbers of steps to encoding and decoding data.
+        \item \textbf{Large Alphabet size:} when dealing with a large symbol set like DNA sequence, etc, this approach can reduce the complexity to the original Huffman coding.
+    \end{itemize}
+\end{itemize}
+\subsection{Length-Limited Huffman Coding:}
+\begin{itemize}
+    \item This variant can limit the maximum length of the code assigned to a symbol and ensure that no symbol has excessively long code. The package-merge algorithm used to make this variant more efficient can provide the content, which is the maximum length of the codeword. 
+    \item This variant is useful in the following scenarios:
+    \begin{itemize}
+        \item \textbf{Memory-Constrained Environments:} This variant can reduce memory to store the code of a symbol, which can help when working on a low-RAM system.
+        \item \textbf{Low-Latency Decoding:} Length-limited Huffman coding ensures a predictable worst-case decoding time when used for real-time application. 
+    \end{itemize}
+\end{itemize}
+\subsection{Canonical Huffman Coding:}
+\begin{itemize}
+    \item Canonical Huffman Coding is a refinement of the standard Huffman coding algorithm designed primarily to reduce the overhead associated with storing or transmitting the Huffman tree structure itself. While standard Huffman coding generates an optimal set of prefix codes given symbol frequencies, the representation of the tree needed for decoding can consume significant space, diminishing the overall compression effectiveness, especially for files with large alphabets or relatively short lengths. Canonical Huffman Coding achieves the same compression optimality (in terms of average code length) as standard Huffman but represents the codebook using a more compact, standardized method based solely on the lengths of the codewords. 
+    \item The ideal scenario for this variant:
+    \begin{itemize}
+        \item \textbf{Large alphabet size:} Compressing data with a wide range of possible symbols, such as 16-bit Unicode characters, large dictionaries in LZ77/LZW compression outputs, or quantized coefficients in image/audio compression (JPEG/MP3).
+        \item \textbf{Frequent Transmission of Small Data Blocks:} Compressing many small, independent messages or data packets, perhaps in a network protocol or for storing small records.
+    \end{itemize}
+\end{itemize}
+

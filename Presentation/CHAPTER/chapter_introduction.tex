@@ -1,0 +1,77 @@
+\section{Introduction to Huffman coding}
+\subsection{David Albert Huffman (1925–1999)}
+\begin{itemize}
+\item David Albert Huffman came from Ohio, so he attended Ohio State University for his Bachelor's in electrical engineering. He earned it in 1944, when he was 18. After serving in the United States Navy, he returned to Ohio and studied for a Doctor of Philosophy in electrical engineering at MIT (1953).
+\item He made his only career move when he went to the University of California in Santa Cruz as the founding faculty member of the Computer Science Department in 1967. Huffman played a major role in the development of the department, he served as chair from 1970 to 1973. He is known for his motto “My products are my students.”. In 1994, He retired and remained active in the department by teaching information theory and signal analysis courses.\cite{salomon2010handbook}
+\item Huffman has made significant contributions in several areas, primarily information theory and coding, signal design for radar and communications, and design procedures for asynchronous logic circuits. The Huffman coding algorithm is widely used to compress data, especially in the coding field.
+\end{itemize}
+\subsection{The birth of Huffman coding}
+\begin{itemize}
+\item When David Huffman studied for a Doctor of Philosophy at MIT and took a course on Information Theory taught by Robert M. Fano, Huffman had to do the final assignment for the course to find the most efficient way to encode a set of symbols based on their frequencies.
+\item At that time, Shannon-Fano coding was a popular algorithm, but it did not always bring the most efficient encoding. All the students in that class had to find an optimal encoding method or prove that no better method existed.
+\item Huffman struggled with complex mathematical approaches, attempting to optimize coding schemes using different strategies for weeks. He was about to give up but suddenly realized that instead of assigning arbitrary binary codes, he could build a binary tree from the bottom by repeatedly merging the two least frequent symbols. This technique can ensure that the most frequent symbols will be encoded with shorter code and minimize the length of bits needed to store data.
+\item Huffman coding was published in the paper "A Method for the Construction of Minimum-Redundancy Codes" in 1952.
+\end{itemize}
+\subsection{Brief description of the algorithm}
+\begin{itemize}
+\item Huffman coding is a popular algorithm in lossless data compression. This means it can compress data to reduce file sizes without sacrificing any significant information and the original data can be reconstructed perfectly in decoding. 
+The algorithm assigns each input symbol using variable-length (binary) codes. These codes are based on the frequencies of corresponding symbols and are Prefix codes.  
+\item Prefix codes are a type of code that a symbol when assigned by this code is not a prefix of code assigned to another symbol. For example, [00,11,10,010] is an array of prefix codes but [00,001,10,010] is not because 00 is a prefix of 001.
+\item Based on the description of the prefix code, Huffman coding ensures that each symbol will be kept intact in encoding and restores the original symbol in decoding. Let's take an example when the code of each symbol is not a prefix code: \item Let there be three characters x, y, z and their code be 0, 01, 00. The code assigned to x is the prefix of codes assigned to y and z. If the compressed bit is 00001, the de-compressed output may be “zxy” or “xzy”.
+\item There are two main parts of Huffman coding:
+\begin{itemize}
+    \item Build a Huffman Tree from input
+    \item Traverse the Huffman Tree and assign codes to symbols.
+\end{itemize}
+\end{itemize}
+\subsection{Huffman coding}
+\begin{enumerate}[label=\textbf{\Alph*.}]
+    \item \textbf{Steps to follow to implement algorithm}
+        \begin{itemize}
+            \item \textbf{Step 1: Count the symbols’s frequencies}
+                \begin{itemize}
+                    \item Read input and count the frequencies of each symbol in the data.
+                    \item The frequencies will show how often each symbol appears in the input data.
+                \end{itemize}
+            \item \textbf{Step 2: Build a Min-Heap (priority queue)}
+                \begin{itemize}
+                    \item Insert each symbol as a node into Min-heap based on its frequency.
+                    \item The highest priority will be the least frequency symbols.
+                \end{itemize}
+            \item \textbf{Step 3: Construct the Huffman tree}
+                \begin{itemize}
+                    \item Get the two lowest-frequency nodes and then remove them from the heap.
+                    \item Merge them into a node and let the frequency of that node be the sum of the 2 frequencies of those 2 symbols.
+                    \item Insert the newly created node back into the heap.
+                    \item Repeat this step until there is one node in the heap. That node will be the root of the Huffman tree.
+                \end{itemize}
+            \item \textbf{Step 4: Assign binary code to symbols}
+                \begin{itemize}
+                    \item Use the traverse algorithm to traverse the Huffman tree from the root and assign binary code to each symbol followed by this rule:
+                    \begin{itemize}
+                        \item When passing the left edge, ‘0’ will be added to the binary string
+                        \item When passing the left edge, ‘1’ will be added to the binary string
+                        \item When meeting a leaf, the binary string will be used to assign the symbol in that node.
+                    \end{itemize}
+                    \item Based on the implementation of step 3, all symbols are leaf nodes. Because of that, no symbol is in the path of another symbol from the root so the binary code is prefix-code.
+                \end{itemize}
+            \item \textbf{Step 5: Encode the data}
+                \begin{itemize}
+                    \item Replace all symbols with the Huffman code that had been assigned to them.
+                \end{itemize}
+            \item \textbf{Step 6: Decode the data}
+                \begin{itemize}
+                    \item Using the Huffman tree to find the symbols assigned by the code in the encoding file.
+                    \item Start from the root and read bit by bit in the encoding file:
+                    \begin{itemize}
+                        \item When meet bit ‘1’, go to the right edge
+                        \item When meet bit ‘0’, go to the left edge
+                        \item When meeting a leaf, print the symbol in that node.
+                        \item Return to root.
+                    \end{itemize}
+                    \item Repeat until the end of the file.
+
+                \end{itemize}
+        \end{itemize}
+        
+\end{enumerate}

@@ -1,0 +1,2114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Huffman Coding Algorithm</title>
+	<script src="https://cdn.tailwindcss.com"></script>
+	<style>
+		html {
+			-webkit-text-size-adjust: 100%;
+			-moz-text-size-adjust: 100%;
+			-ms-text-size-adjust: 100%;
+			text-size-adjust: 100%;
+		}
+
+		:root {
+			--primary: #1e40af;
+			--secondary: #3b82f6;
+			--accent: #bfdbfe;
+			--text: #1e293b;
+			--background: #f8fafc;
+		}
+
+		body {
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			margin: 0;
+			padding: 0;
+			background-color: var(--background);
+			color: var(--text);
+			overflow: hidden;
+		}
+
+		.slide-container {
+			width: 100vw;
+			height: 100vh;
+			position: relative;
+			overflow: hidden;
+		}
+
+		.slide {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			top: 0;
+			left: 0;
+			opacity: 0;
+			transition: opacity 1.0s ease-in-out;
+			display: flex;
+			flex-direction: column;
+			padding: 2rem;
+			box-sizing: border-box;
+			background-color: var(--background);
+			overflow: hidden;
+		}
+
+		.slide.active {
+			opacity: 1;
+			z-index: 1;
+		}
+
+		.slide-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 1rem;
+			flex-shrink: 0;
+		}
+
+		.slide-title {
+			font-size: 2.5rem;
+			font-weight: bold;
+			color: var(--primary);
+			margin: 0;
+		}
+
+		.slide-content {
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			height: 100%;
+			overflow-y: auto;
+			padding-bottom: 2rem;
+			scrollbar-width: thin;
+			scrollbar-color: var(--secondary) #f1f5f9;
+		}
+
+		.slide-content::-webkit-scrollbar {
+			width: 8px;
+		}
+
+		.slide-content::-webkit-scrollbar-track {
+			background: #f1f5f9;
+			border-radius: 4px;
+		}
+
+		.slide-content::-webkit-scrollbar-thumb {
+			background-color: var(--secondary);
+			border-radius: 4px;
+		}
+
+		.slide-footer {
+			display: flex;
+			justify-content: space-between;
+			margin-top: 1rem;
+		}
+
+		.navigation {
+			position: fixed;
+			bottom: 2rem;
+			right: 2rem;
+			display: none;
+			gap: 1rem;
+			z-index: 20;
+		}
+
+		.nav-button {
+			background-color: var(--primary);
+			color: white;
+			border: none;
+			border-radius: 50%;
+			width: 3rem;
+			height: 3rem;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			cursor: pointer;
+			transition: background-color 0.6s;
+			font-size: 1.5rem;
+		}
+
+		.nav-button:hover {
+			background-color: var(--secondary);
+		}
+
+		.slide-number {
+			position: fixed;
+			bottom: 1rem;
+			left: 1rem;
+			font-size: 1rem;
+			color: var(--secondary);
+			z-index: 20;
+		}
+
+		.two-column {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 2rem;
+			width: 100%;
+			height: 100%;
+		}
+
+		/* Add these animation styles right before the existing Huffman Tree Visualization Styles */
+
+		@keyframes nodeAppear {
+			from {
+				transform: scale(0);
+				opacity: 0;
+			}
+
+			to {
+				transform: scale(1);
+				opacity: 1;
+			}
+		}
+
+		@keyframes edgeGrow {
+			from {
+				transform-origin: 0 0;
+				transform: scaleX(0) rotate(var(--angle));
+				opacity: 0;
+			}
+
+			to {
+				transform-origin: 0 0;
+				transform: scaleX(1) rotate(var(--angle));
+				opacity: 1;
+			}
+		}
+
+		@keyframes labelFadeIn {
+			from {
+				opacity: 0;
+				transform: translateY(-10px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes heapItemHighlight {
+			0% {
+				background-color: #dbeafe;
+				transform: scale(1);
+			}
+
+			50% {
+				background-color: #fef3c7;
+				transform: scale(1.1);
+			}
+
+			100% {
+				background-color: #dbeafe;
+				transform: scale(1);
+			}
+		}
+
+		@keyframes heapItemRemove {
+			0% {
+				opacity: 1;
+				transform: scale(1);
+			}
+
+			100% {
+				opacity: 0.5;
+				transform: scale(0.95);
+				text-decoration: line-through;
+			}
+		}
+
+		/* Update the tree node transition properties */
+		.tree-node {
+			position: absolute;
+			background-color: #bfdbfe;
+			border: 2px solid #1e40af;
+			border-radius: 50%;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			width: 60px;
+			height: 60px;
+			font-weight: bold;
+			transition: all 1.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+			transform-origin: center;
+			z-index: 10;
+		}
+
+		.tree-node.new {
+			animation: nodeAppear 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+		}
+
+		.tree-edge {
+			position: absolute;
+			background-color: #3b82f6;
+			height: 2px;
+			transform-origin: 0 0;
+			transition: width 1.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+				transform 1.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+		}
+
+		.tree-edge.new {
+			animation: edgeGrow 1.2s ease-out forwards;
+		}
+
+		.edge-label {
+			position: absolute;
+			background-color: #ffffff;
+			padding: 2px 6px;
+			border-radius: 10px;
+			font-size: 0.8rem;
+			font-weight: bold;
+			box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+			transition: all 1.0s ease;
+		}
+
+		.edge-label.new {
+			animation: labelFadeIn 1.0s ease-out forwards;
+			animation-delay: 0.6s;
+			opacity: 0;
+		}
+
+		.heap-item {
+			padding: 0.5rem 1rem;
+			background-color: #dbeafe;
+			border: 1px solid #2563eb;
+			border-radius: 0.5rem;
+			font-weight: bold;
+			transition: all 1.0s ease;
+		}
+
+		.heap-item.highlight {
+			animation: heapItemHighlight 2.0s ease-out forwards;
+		}
+
+		.heap-item.removed {
+			animation: heapItemRemove 1.0s ease-out forwards;
+		}
+
+		/* Ensure nodes are visible when the tree gets bigger */
+		#treeContainer {
+			position: relative;
+			overflow: visible !important;
+		}
+
+		/* Make the description text more prominent */
+		.step-description {
+			background-color: #f1f5f9;
+			border-left: 5px solid #3b82f6;
+			font-weight: 500;
+		}
+
+		/* Ensure the tree container adjusts based on content */
+		.huffman-visualization {
+			overflow-y: auto;
+			display: flex;
+			flex-direction: column;
+		}
+
+		.huffman-tree {
+			width: 100%;
+			height: 100%;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			max-height: 70vh;
+			overflow-y: auto;
+		}
+
+		.tree-level {
+			display: flex;
+			justify-content: center;
+			margin-bottom: 2rem;
+		}
+
+		.code-table {
+			width: 100%;
+			border-collapse: collapse;
+		}
+
+		.code-table th,
+		.code-table td {
+			padding: 0.75rem;
+			text-align: left;
+			border-bottom: 1px solid #e2e8f0;
+		}
+
+		.code-table th {
+			background-color: var(--accent);
+			font-weight: bold;
+		}
+
+		.progress-bar {
+			position: fixed;
+			top: 0;
+			left: 0;
+			height: 4px;
+			background-color: var(--primary);
+			transition: width 0.6s;
+			z-index: 10;
+		}
+
+		.aspect-ratio-container {
+			width: 100%;
+			max-width: 800px;
+			aspect-ratio: 16/9;
+			position: relative;
+			overflow: hidden;
+			margin: 0 auto;
+		}
+
+		/* Animations */
+		@keyframes fadeIn {
+			from {
+				opacity: 0;
+				transform: translateY(20px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		.animate {
+			opacity: 0;
+			animation: fadeIn 1.0s ease-out forwards;
+		}
+
+		.delay-1 {
+			animation-delay: 0.2s;
+		}
+
+		.delay-2 {
+			animation-delay: 0.4s;
+		}
+
+		.delay-3 {
+			animation-delay: 1.2s;
+		}
+
+		.delay-4 {
+			animation-delay: 1.6s;
+		}
+
+		.delay-5 {
+			animation-delay: 2.0s;
+		}
+
+		/* Specific styles for algorithm visualization */
+		.algorithm-step {
+			padding: 1rem;
+			border-left: 4px solid var(--primary);
+			background-color: rgba(191, 219, 254, 0.2);
+			margin-bottom: 1rem;
+			border-radius: 0 0.5rem 0.5rem 0;
+		}
+
+		.algorithm-step h3 {
+			color: var(--primary);
+			margin-top: 0;
+		}
+
+		.step-highlight {
+			background-color: #fef3c7;
+			padding: 0.1rem 0.3rem;
+			border-radius: 0.25rem;
+			font-weight: bold;
+		}
+
+		/* Modal styles */
+		.modal {
+			display: none;
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background-color: rgba(0, 0, 0, 0.7);
+			z-index: 100;
+			justify-content: center;
+			align-items: center;
+		}
+
+		.modal-content {
+			background-color: white;
+			padding: 2rem;
+			border-radius: 0.5rem;
+			max-width: 80%;
+			max-height: 80%;
+			overflow-y: auto;
+		}
+
+		.close-button {
+			position: absolute;
+			top: 1rem;
+			right: 1rem;
+			font-size: 1.5rem;
+			background: none;
+			border: none;
+			cursor: pointer;
+		}
+
+		/* 16:9 aspect ratio for all slides */
+		.slide-container {
+			aspect-ratio: 16/9;
+			max-height: 100vh;
+			max-width: calc(100vh * 16 / 9);
+			margin: 0 auto;
+		}
+
+		@media (max-width: 768px) {
+			.slide-title {
+				font-size: 1.5rem;
+			}
+
+			.two-column {
+				grid-template-columns: 1fr;
+			}
+		}
+
+		/* Style for speaker scripts (hidden by default) */
+		.speaker-notes {
+			display: none;
+			position: fixed;
+			bottom: 0;
+			left: 0;
+			width: 100%;
+			background-color: rgba(255, 255, 255, 0.9);
+			padding: 1rem;
+			border-top: 2px solid var(--primary);
+			max-height: 30vh;
+			overflow-y: auto;
+			z-index: 20;
+		}
+
+		/* Huffman Tree Visualization Styles */
+		.huffman-visualization {
+			width: 100%;
+			height: 100%;
+			position: relative;
+			max-height: 70vh;
+			overflow-y: auto;
+		}
+
+		.tree-container {
+			width: 100%;
+			height: 300px;
+			position: relative;
+			overflow: hidden;
+		}
+
+		.tree-node {
+			position: absolute;
+			background-color: #bfdbfe;
+			border: 2px solid #1e40af;
+			border-radius: 50%;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			width: 60px;
+			height: 60px;
+			font-weight: bold;
+			transition: all 1.0s ease;
+		}
+
+		.tree-edge {
+			position: absolute;
+			background-color: #3b82f6;
+			height: 2px;
+			transform-origin: 0 0;
+			transition: all 1.0s ease;
+		}
+
+		.edge-label {
+			position: absolute;
+			background-color: #ffffff;
+			padding: 2px 6px;
+			border-radius: 10px;
+			font-size: 0.8rem;
+			font-weight: bold;
+			box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+		}
+
+		.tree-leaf {
+			background-color: #dbeafe;
+			border-color: #2563eb;
+		}
+
+		.tree-internal {
+			background-color: #eff6ff;
+		}
+
+		.min-heap {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0.25rem 0.5rem;
+			/* Reduced vertical gap, kept horizontal */
+			margin-top: 0.75rem;
+			margin-bottom: 0;
+			/* Ensure no extra space at bottom */
+			justify-content: flex-start;
+			align-items: center;
+			padding-bottom: 0;
+			/* Remove bottom padding */
+		}
+
+		.heap-item {
+			padding: 0.5rem 1rem;
+			background-color: #dbeafe;
+			border: 1px solid #2563eb;
+			border-radius: 0.5rem;
+			font-weight: bold;
+		}
+
+		.removed {
+			text-decoration: line-through;
+			opacity: 0.5;
+			display: inline-flex;
+			/* Maintain inline display like min-heap items */
+			align-items: center;
+			margin-right: 0.5rem;
+			/* Consistent spacing with other items */
+		}
+
+		.highlighted {
+			background-color: #fef3c7;
+			border-color: #d97706;
+		}
+
+		.step-description {
+			margin-top: 1rem;
+			padding: 0.75rem;
+			background-color: #f8fafc;
+			border-left: 4px solid #3b82f6;
+			border-radius: 0 0.25rem 0.25rem 0;
+		}
+
+		/* Ensure elements have reasonable height */
+		.slide-content>div {
+			padding-bottom: 1.5rem;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="progress-bar" id="progressBar"></div>
+	<div class="slide-container" id="slideContainer">
+		<!-- Slide 1: Title Slide -->
+		<div class="slide active" id="slide1">
+			<div class="slide-content">
+				<h1 class="slide-title text-center text-4xl mb-8 animate">HUFFMAN CODING ALGORITHM</h1>
+				<div class="text-center text-xl mb-8 animate delay-1">
+					<p class="mb-2">University of Science, VNU-HCM</p>
+					<p>Data Structures and Algorithms</p>
+				</div>
+				<div class="text-center animate delay-2">
+					<p class="font-bold mb-4 text-2xl font-bold text-blue-800 mb-8">Group 4</p>
+					<table class="mx-auto mb-4" style="border-collapse: separate; border-spacing: 15px 0;">
+						<tr>
+							<td class="text-left font-bold">Theory Lecturer</td>
+							<td class="text-left">Dr. </td>
+							<td class="text-left">Nguyen Thanh Phuong</td>
+							<td class="text-left font-bold">Students</td>
+							<td class="text-left">24127104 </td>
+							<td class="text-left">Du Hoai Phuc - Leader</td>
+						</tr>
+						<tr>
+							<td class="text-left font-bold">Lab Lecturer</td>
+							<td class="text-left">Dr. </td>
+							<td class="text-left">Nguyen Ngoc Thao</td>
+							<td></td>
+							<td class="text-left">24127008 </td>
+							<td class="text-left">Truong Nhat Phat</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td class="text-left">M.S. </td>
+							<td class="text-left">Nguyen Thanh Tinh</td>
+							<td></td>
+							<td class="text-left">24127173 </td>
+							<td class="text-left">Nguyen Tuan Hung</td>
+						</tr>
+					</table>
+				</div>
+			</div>
+			<div class="speaker-notes">
+				Hello everyone, our group will present about the Huffman data compression algorithm. This is one of the
+				most
+				basic and important data compression algorithms in computer science.
+			</div>
+		</div>
+
+		<!-- Slide 2: Overview of Compression -->
+		<div class="slide" id="slide2">
+			<div class="slide-header">
+				<h2 class="slide-title">Overview of Data Compression</h2>
+			</div>
+			<div class="slide-content">
+				<div class="two-column">
+					<div>
+						<div class="animate">
+							<h3 class="text-xl font-bold mb-4 text-blue-800">What is Data Compression?</h3>
+							<p class="mb-4">The process of reducing data size without losing (or minimally losing)
+								information.</p>
+						</div>
+
+						<div class="animate delay-1">
+							<h3 class="text-xl font-bold mb-4 text-blue-800 mt-6">Types of Compression</h3>
+							<ul class="list-disc pl-6 mb-4">
+								<li class="mb-2"><strong>Lossless Compression:</strong> Guarantees complete recovery of
+									original data
+								</li>
+								<li><strong>Lossy Compression:</strong> Accepts loss of some non-critical information
+								</li>
+							</ul>
+						</div>
+
+						<div class="animate delay-2">
+							<h3 class="text-xl font-bold mb-4 text-blue-800 mt-6">Historical Development</h3>
+							<ul class="list-disc pl-6">
+								<li>Morse Code - assigning shorter codes to frequently used letters</li>
+								<li>Claude Shannon (1948) - Information Theory</li>
+								<li>David Huffman (1952) - Huffman Algorithm</li>
+								<li>Lempel-Ziv (1970s-80s) - LZ77, LZ78, LZW</li>
+							</ul>
+						</div>
+					</div>
+					<div class="flex flex-col">
+						<div class="mb-8 animate delay-3">
+							<h3 class="text-xl font-bold mb-4 text-blue-800 text-center">Need for Data Compression</h3>
+							<div class="bg-blue-100 rounded-lg p-4">
+								<ul class="list-disc pl-6">
+									<li>Save storage space</li>
+									<li>Reduce data transmission time</li>
+									<li>Optimize bandwidth</li>
+									<li>Reduce storage and transmission costs</li>
+								</ul>
+							</div>
+						</div>
+						<div class="animate delay-4">
+							<h3 class="text-xl font-bold mb-4 text-blue-800 text-center">Applications</h3>
+							<div class="bg-blue-100 rounded-lg p-4">
+								<ul class="list-disc pl-6">
+									<li>Multimedia compression (JPEG, MP3, MPEG)</li>
+									<li>Text compression (ZIP, GZIP, 7-Zip)</li>
+									<li>Database compression</li>
+									<li>Compression in embedded systems</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="speaker-notes">
+				First, let's explore data compression. This is the process of reducing data size without losing or
+				minimally
+				losing information. There are two main types: lossless compression guarantees complete recovery of the
+				original
+				data, and lossy compression accepts losing some non-critical information.
+
+				The history of data compression can be traced back to the early days of computing. Morse code can be
+				considered
+				one of the earliest forms of data compression, as it assigns shorter codes to more frequently used
+				letters.
+
+				In today's big data era, data compression has become an essential need, helping save storage space,
+				reduce data
+				transmission time, and optimize bandwidth.
+			</div>
+		</div>
+
+		<!-- Slide 3: Introduction to Huffman -->
+		<div class="slide" id="slide3">
+			<div class="slide-header">
+				<h2 class="slide-title">Introduction to Huffman Algorithm</h2>
+			</div>
+			<div class="slide-content">
+				<div class="two-column">
+					<div>
+						<div class="animate">
+							<h3 class="text-xl font-bold mb-4 text-blue-800">David Albert Huffman (1925-1999)</h3>
+							<ul class="list-disc pl-6 mb-6">
+								<li>Graduated from Ohio State University at age 18</li>
+								<li>PhD at MIT in 1953</li>
+								<li>Professor at University of California, Santa Cruz</li>
+								<li>Motto: "My products are my students"</li>
+							</ul>
+						</div>
+
+						<div class="animate delay-1">
+							<h3 class="text-xl font-bold mb-4 text-blue-800">Birth of the Huffman Algorithm</h3>
+							<p class="mb-4">In 1952, David Huffman was a student of Professor Robert M. Fano at MIT.</p>
+							<p class="mb-4">Final assignment: Find the most efficient way to encode a set of symbols
+								based on
+								frequency.</p>
+							<p>The algorithm was published in the paper "A Method for the Construction of
+								Minimum-Redundancy Codes".
+							</p>
+						</div>
+					</div>
+					<div>
+						<div class="animate delay-2">
+							<h3 class="text-xl font-bold mb-4 text-blue-800">Symbolistics of Huffman Algorithm</h3>
+							<ul class="list-disc pl-6">
+								<li class="mb-2">Lossless compression algorithm</li>
+								<li class="mb-2">Uses prefix codes</li>
+								<li class="mb-2">Based on symbol frequency</li>
+								<li class="mb-2">Assigns shorter codes to frequent symbols</li>
+								<li class="mb-2">Uses binary tree to represent codes</li>
+							</ul>
+						</div>
+
+						<div class="animate delay-3 mt-6">
+							<h3 class="text-xl font-bold mb-4 text-blue-800">Prefix Code</h3>
+							<p class="mb-2">A symbol's code is not a prefix of any other symbol's code</p>
+							<div class="bg-green-100 rounded-lg p-2 mb-2">
+								<p class="font-bold text-green-800">Valid: [00, 11, 10, 010]</p>
+							</div>
+							<div class="bg-red-100 rounded-lg p-2">
+								<p class="font-bold text-red-800">Invalid: [00, 001, 10, 010]</p>
+								<p class="text-sm text-red-700">Reason: 00 is a prefix of 001</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="speaker-notes">
+				David Albert Huffman was born in 1925 in Ohio. He graduated with an electrical engineering degree from
+				Ohio
+				State University at just 18 years old. After serving in the U.S. Navy, he returned to study for his PhD
+				at MIT
+				and completed it in 1953.
+
+				The Huffman algorithm was born when David Huffman was a PhD student at MIT and took a course in
+				Information
+				Theory. The final assignment required students to find the most efficient way to encode a set of
+				symbols
+				based on their frequency of occurrence.
+
+				A key feature of the Huffman algorithm is that it uses prefix codes, where no symbol's code is a
+				prefix of
+				any other symbol's code, making decoding easy and unambiguous.
+			</div>
+		</div>
+
+		<!-- Slide 4: Steps of Huffman Algorithm -->
+		<div class="slide" id="slide4">
+			<div class="slide-header">
+				<h2 class="slide-title">Steps of the Huffman Algorithm</h2>
+			</div>
+			<div class="slide-content">
+				<div class="w-full">
+					<div class="algorithm-step animate">
+						<h3>Step 1: Count symbol frequencies</h3>
+						<p>Read the input data and count occurrences of each symbol</p>
+					</div>
+
+					<div class="algorithm-step animate delay-1">
+						<h3>Step 2: Build a Min-Heap (priority queue)</h3>
+						<p>Insert each symbol as a node into the Min-heap based on frequency</p>
+						<p>Highest priority given to symbols with lowest frequency</p>
+					</div>
+
+					<div class="algorithm-step animate delay-2">
+						<h3>Step 3: Build the Huffman tree</h3>
+						<ul class="list-disc pl-6 mb-2">
+							<li>Take the two nodes with lowest frequencies and remove them from the heap</li>
+							<li>Create a new node with frequency equal to the sum of the two nodes</li>
+							<li>Make the two nodes the children of the new node</li>
+							<li>Insert the new node into the heap</li>
+							<li>Repeat until only one node remains in the heap (the root of the Huffman tree)</li>
+						</ul>
+					</div>
+
+					<div class="algorithm-step animate delay-3">
+						<h3>Step 4: Assign binary codes to symbols</h3>
+						<ul class="list-disc pl-6 mb-2">
+							<li>Traverse the Huffman tree from root to leaves</li>
+							<li>When going through a left edge, add '0' to the code</li>
+							<li>When going through a right edge, add '1' to the code</li>
+							<li>When a leaf is reached, the obtained code is the Huffman code for that symbol</li>
+						</ul>
+					</div>
+
+					<div class="algorithm-step animate delay-4">
+						<h3>Step 5: Encode and decode data</h3>
+						<p><strong>Encoding:</strong> Replace each symbol in the original data with its corresponding
+							Huffman
+							code</p>
+						<p><strong>Decoding:</strong> Use the Huffman tree to convert the encoded data back to the
+							original data</p>
+					</div>
+				</div>
+			</div>
+			<div class="speaker-notes">
+				The Huffman algorithm can be divided into these basic steps:
+
+				Step 1: Count the frequency of occurrence of each symbol in the input data.
+
+				Step 2: Build a Min-Heap (priority queue) with symbols sorted by frequency from low to high.
+
+				Step 3: Build the Huffman tree by continuously taking the two nodes with lowest frequencies, creating a
+				new node
+				with their sum, and setting them as children.
+
+				Step 4: Assign binary codes to symbols by traversing the tree from root to leaves, adding 0 when
+				going left
+				and 1 when going right.
+
+				Step 5: Encode data by replacing each symbol with its Huffman code, and decode using the Huffman
+				tree.
+			</div>
+		</div>
+
+		<!-- Slide 5: Visualization of Huffman Tree for the word "Huffman" -->
+		<div class="slide" id="slide5">
+			<div class="slide-header">
+				<h2 class="slide-title">Visualizing the Huffman Tree Construction Process</h2>
+			</div>
+			<div class="slide-content">
+				<div class="w-full flex justify-start items-center" style="height: 100%;">
+					<div class="animate">
+						<h3 class="text-xl font-bold mb-2 text-blue-800 text-center">Symbol Frequency in "Huffman"</h3>
+						<table class="code-table"
+							style="width: 300px; margin: 0 auto 15px auto; border-collapse: collapse; text-align: center;">
+							<thead>
+								<tr style="background-color: #cfe2ff;">
+									<th class="py-2 px-4" style="width: 50%; text-align: center !important;">Symbol</th>
+									<th class="py-2 px-4" style="width: 50%; text-align: center !important;">Frequency</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td class="py-2 px-4 border-b" style="text-align: center !important;">H</td>
+									<td class="py-2 px-4 border-b" style="text-align: center !important;">1</td>
+								</tr>
+								<tr>
+									<td class="py-2 px-4 border-b" style="text-align: center !important;">u</td>
+									<td class="py-2 px-4 border-b" style="text-align: center !important;">1</td>
+								</tr>
+								<tr>
+									<td class="py-2 px-4 border-b" style="text-align: center !important;">f</td>
+									<td class="py-2 px-4 border-b" style="text-align: center !important;">2</td>
+								</tr>
+								<tr>
+									<td class="py-2 px-4 border-b" style="text-align: center !important;">m</td>
+									<td class="py-2 px-4 border-b" style="text-align: center !important;">1</td>
+								</tr>
+								<tr>
+									<td class="py-2 px-4 border-b" style="text-align: center !important;">a</td>
+									<td class="py-2 px-4 border-b" style="text-align: center !important;">1</td>
+								</tr>
+								<tr>
+									<td class="py-2 px-4 border-b" style="text-align: center !important;">n</td>
+									<td class="py-2 px-4 border-b" style="text-align: center !important;">1</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+
+					<div class="huffman-tree animate animate delay-4" style="height: calc(100vh - 250px); min-height: 500px;">
+						<h3 class="text-2xl font-bold mb-2 text-blue-800 text-center">Huffman Tree Construction Process
+						</h3>
+						<div class="bg-blue-50 rounded-lg p-4" style="height: calc(100% - 50px);">
+							<div id="huffmanVisualization" class="huffman-visualization" style="height: 100%;">
+								<div class="tree-container" id="treeContainer" style="height: calc(100% - 130px); min-height: 320px;">
+									<!-- Tree nodes and edges will be added dynamically by JavaScript -->
+								</div>
+								<div class="min-heap" id="minHeap">
+									<!-- Heap items will be added dynamically by JavaScript -->
+								</div>
+								<div class="step-description" id="stepDescription"
+									style="font-size: 1.1em; margin-top: 10px; padding: 10px;">
+									<!-- Step description will be added dynamically by JavaScript -->
+								</div>
+								<div class="flex justify-center mt-3">
+									<button id="prevStep" class="bg-blue-600 text-white px-6 py-2 rounded mr-4 hover:bg-blue-700">Previous
+										Step</button>
+									<span id="stepIndicator" class="text-blue-800 font-bold py-2 text-lg">Step
+										1/5</span>
+									<button id="nextStep" class="bg-blue-600 text-white px-6 py-2 rounded ml-4 hover:bg-blue-700">Next
+										Step</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="speaker-notes">
+				Let's visualize how the Huffman tree is constructed using the word "Huffman" as our example. First, we
+				count the
+				frequency of each symbol in this word. We have 6 distinct symbols: 'H', 'u', 'f', 'm', 'a', and
+				'n'. Most
+				symbols appear only once, while 'f' appears twice.
+
+				We'll now build the Huffman tree step by step. First, we place all symbols in a min-heap based on
+				their
+				frequencies. Then, we repeatedly extract the two nodes with the lowest frequencies, create a new
+				internal node
+				with these two as children, and reinsert the new node into the heap. This process continues until only
+				one node
+				remains in the heap, which becomes the root of our Huffman tree.
+
+				Each step in this visualization shows how the tree grows and how the min-heap changes. You can navigate
+				through
+				the steps using the buttons below.
+			</div>
+		</div>
+
+		<!-- Slide 6: Huffman Codes -->
+		<div class="slide" id="slide6">
+			<div class="slide-header">
+				<h2 class="slide-title">Huffman Codes and Encoding Process</h2>
+			</div>
+			<div class="slide-content">
+				<div class="two-column">
+					<div>
+						<div class="animate">
+							<h3 class="text-xl font-bold mb-4 text-blue-800 text-left">Huffman Code Table</h3>
+							<table class="code-table"
+								style="width: 500px; margin: 0 0 15px 0; border-collapse: collapse; text-align: center;">
+								<thead>
+									<tr>
+										<th style="text-align: center !important;">Symbol</th>
+										<th style="text-align: center !important;">Huffman Code</th>
+										<th style="text-align: center !important;">ASCII (for comparison)</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td style="text-align: center !important;">H</td>
+										<td style="text-align: center !important;">000</td>
+										<td style="text-align: center !important;">01001000 (8 bits)</td>
+									</tr>
+									<tr>
+										<td style="text-align: center !important;">u</td>
+										<td style="text-align: center !important;">001</td>
+										<td style="text-align: center !important;">01110101 (8 bits)</td>
+									</tr>
+									<tr>
+										<td style="text-align: center !important;">f</td>
+										<td style="text-align: center !important;">11</td>
+										<td style="text-align: center !important;">01100110 (8 bits)</td>
+									</tr>
+									<tr>
+										<td style="text-align: center !important;">m</td>
+										<td style="text-align: center !important;">010</td>
+										<td style="text-align: center !important;">01101101 (8 bits)</td>
+									</tr>
+									<tr>
+										<td style="text-align: center !important;">a</td>
+										<td style="text-align: center !important;">011</td>
+										<td style="text-align: center !important;">01100001 (8 bits)</td>
+									</tr>
+									<tr>
+										<td style="text-align: center !important;">n</td>
+										<td style="text-align: center !important;">10</td>
+										<td style="text-align: center !important;">01101110 (8 bits)</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+
+						<div class="animate delay-1 mt-6">
+							<h3 class="text-xl font-bold mb-4 text-blue-800">Encoding Example</h3>
+							<p class="mb-2">Original string: <span class="font-mono bg-blue-100 px-2 py-1 rounded">Huffman</span></p>
+							<p class="mb-4">Encoded string: <span class="font-mono bg-green-100 px-2 py-1 rounded">000 001 11 11 010
+									011 10</span>
+							</p>
+
+							<div class="bg-blue-50 p-4 rounded-lg">
+								<p class="font-bold">Encoding details:</p>
+								<p>H (000) + u (001) + f (11) + f (11) + m (010) + a (011) + n (10)</p>
+								<p>= 000 + 001 + 11 + 11 + 010 + 011 + 10</p>
+								<p>= 000 001 11 11 010 011 10</p>
+							</div>
+						</div>
+					</div>
+					<div>
+						<div class="animate delay-2">
+							<h3 class="text-xl font-bold mb-4 text-blue-800">Decoding Process</h3>
+							<p class="mb-4">Encoded string: <span
+									class="font-mono bg-green-100 px-2 py-1 rounded">000001111101001110</span>
+							</p>
+
+							<div class="bg-yellow-50 p-4 rounded-lg mb-6">
+								<p class="font-bold mb-2">Decoding steps:</p>
+								<ol class="list-decimal pl-6">
+									<li class="mb-1">Start from the root of the Huffman tree</li>
+									<li class="mb-1">Read each bit of the encoded string</li>
+									<li class="mb-1">Move in the tree: 0 → left, 1 → right</li>
+									<li class="mb-1">When a leaf node is reached, record the symbol and return to the
+										root</li>
+									<li>Repeat until the encoded string is exhausted</li>
+								</ol>
+							</div>
+						</div>
+
+						<div class="animate delay-3">
+							<h3 class="text-xl font-bold mb-4 text-blue-800">Efficiency Analysis</h3>
+							<div class="bg-blue-50 p-4 rounded-lg">
+								<p class="mb-2"><strong>ASCII Encoding:</strong> 7 symbols × 8 bits = 56 bits</p>
+								<p class="mb-2"><strong>Huffman Encoding:</strong> 18 bits</p>
+								<p class="font-bold text-green-700">Compression Ratio: (1 − 18/56) × 100% ≈ 67.86% savings.</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="speaker-notes">
+				After building the Huffman tree, we can create a Huffman code table by traversing the tree from root to
+				leaves.
+				The rule is: add bit 0 when going left, add bit 1 when going right.
+
+				The code table shows that symbols with high frequency like 'f' are assigned the shortest code (1),
+				while
+				symbols with low frequency like 'a' are assigned longer codes (000).
+
+				The encoding process simply replaces each symbol in the original string with its corresponding
+				Huffman code.
+				For example, the string "abcdef" is encoded as "000001011011".
+
+				To decode, we read each bit of the encoded string and move through the Huffman tree: 0 go left, 1 go
+				right. When
+				we reach a leaf node, we record the symbol and return to the root to continue decoding.
+
+				Compared to ASCII encoding, Huffman coding saves significant storage space, especially for large text
+				files.
+			</div>
+		</div>
+
+		<!-- Slide 7: Adaptive Huffman -->
+		<div class="slide" id="slide7">
+			<div class="slide-header">
+				<h2 class="slide-title">Adaptive Huffman Coding</h2>
+			</div>
+			<div class="slide-content">
+				<div class="two-column">
+					<div>
+						<div class="animate">
+							<h3 class="text-xl font-bold mb-4 text-blue-800">Problems with Static Huffman</h3>
+							<ul class="list-disc pl-6 mb-6">
+								<li class="mb-2">Requires two data scans: one to calculate frequencies, one to encode
+								</li>
+								<li class="mb-2">Needs to store the Huffman code table with the compressed data</li>
+								<li>Not efficient with data that changes frequency over time</li>
+							</ul>
+						</div>
+
+						<div class="animate delay-1">
+							<h3 class="text-xl font-bold mb-4 text-blue-800">FGK Algorithm (Faller-Gallager-Knuth)</h3>
+							<ul class="list-disc pl-6 mb-6">
+								<li class="mb-2">Updates the Huffman tree after processing each symbol</li>
+								<li class="mb-2">Nodes are numbered in order from right to left and bottom to top</li>
+								<li>Processes data in a streaming fashion (one-pass)</li>
+							</ul>
+						</div>
+					</div>
+					<div>
+						<div class="animate delay-2">
+							<h3 class="text-xl font-bold mb-4 text-blue-800">Vitter Algorithm (Algorithm V)</h3>
+							<ul class="list-disc pl-6 mb-6">
+								<li class="mb-2">Similar to FGK but maintains sibling property in the tree</li>
+								<li class="mb-2">Helps optimize the tree update process</li>
+								<li>More efficient than FGK in terms of processing time</li>
+							</ul>
+						</div>
+
+						<div class="animate delay-3">
+							<h3 class="text-xl font-bold mb-4 text-blue-800">Advantages of Adaptive Huffman</h3>
+							<div class="bg-green-50 p-4 rounded-lg">
+								<ul class="list-disc pl-6">
+									<li class="mb-2">Only needs to scan data once</li>
+									<li class="mb-2">No need to store code table with compressed data</li>
+									<li class="mb-2">Can compress data in real-time streams</li>
+									<li>Adapts to changing frequency distributions</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="speaker-notes">
+				Static Huffman coding requires scanning data twice: once to calculate frequencies and once to encode,
+				and it
+				needs to store the Huffman code table with the compressed data.
+
+				To overcome these disadvantages, Adaptive Huffman coding was developed. There are two main algorithms:
+				the
+				Faller-Gallager-Knuth (FGK) Algorithm and Vitter's Algorithm.
+
+				FGK updates the Huffman tree after processing each symbol, with nodes numbered in order from right to
+				left
+				and bottom to top.
+
+				Vitter's Algorithm is similar to FGK but maintains the sibling property in the tree, helping optimize
+				the update
+				process.
+
+				The main advantages of Adaptive Huffman coding are that it only needs to scan data once, doesn't need to
+				store
+				the code table with compressed data, and can compress data in real-time streams.
+			</div>
+		</div>
+
+		<!-- Slide 8: Other Variants -->
+		<div class="slide" id="slide8">
+			<div class="slide-header">
+				<h2 class="slide-title">Other Variants of Huffman Algorithm</h2>
+			</div>
+			<div class="slide-content">
+				<div class="grid grid-cols-2 gap-6">
+					<div class="bg-blue-50 p-4 rounded-lg animate">
+						<h3 class="text-xl font-bold mb-3 text-blue-800">n-ary Huffman</h3>
+						<ul class="list-disc pl-6">
+							<li class="mb-2">Uses n-ary trees instead of binary trees</li>
+							<li class="mb-2">Allows creating codes in base n instead of binary</li>
+							<li>Useful in applications requiring codes in bases larger than 2</li>
+						</ul>
+					</div>
+
+					<div class="bg-blue-50 p-4 rounded-lg animate delay-1">
+						<h3 class="text-xl font-bold mb-3 text-blue-800">Length-Limited Huffman</h3>
+						<ul class="list-disc pl-6">
+							<li class="mb-2">Limits the maximum code length</li>
+							<li class="mb-2">Sacrifices optimality to ensure length constraints</li>
+							<li>Useful for applications with bit length limitations</li>
+						</ul>
+					</div>
+
+					<div class="bg-blue-50 p-4 rounded-lg animate delay-2">
+						<h3 class="text-xl font-bold mb-3 text-blue-800">Canonical Huffman</h3>
+						<ul class="list-disc pl-6">
+							<li class="mb-2">Rearranges codes for easier storage and decoding</li>
+							<li class="mb-2">Maintains optimality of the original codes</li>
+							<li>Useful in applications requiring fast decoding</li>
+						</ul>
+					</div>
+
+					<div class="bg-blue-50 p-4 rounded-lg animate delay-3">
+						<h3 class="text-xl font-bold mb-3 text-blue-800">Dynamic Huffman</h3>
+						<ul class="list-disc pl-6">
+							<li class="mb-2">Updates the Huffman tree periodically</li>
+							<li class="mb-2">Balances between compression efficiency and update cost</li>
+							<li>Useful for data with slowly changing frequency distributions</li>
+						</ul>
+					</div>
+				</div>
+
+				<div class="mt-6 bg-yellow-50 p-4 rounded-lg animate delay-4">
+					<h3 class="text-xl font-bold mb-3 text-yellow-800">Choosing the Right Variant</h3>
+					<p>The choice of Huffman variant depends on:</p>
+					<ul class="list-disc pl-6 grid grid-cols-2 gap-6 mt-2">
+						<li>Symbolistics of the data to be compressed</li>
+						<li>Encoding/decoding speed requirements</li>
+						<li>Memory and computational constraints</li>
+						<li>Application nature (real-time/offline)</li>
+					</ul>
+				</div>
+			</div>
+			<div class="speaker-notes">
+				Besides Adaptive Huffman, there are many other variants of the Huffman algorithm, each with its own
+				advantages
+				and applications.
+
+				n-ary Huffman uses n-ary trees instead of binary trees, allowing for codes in base n instead of binary.
+				This is
+				useful in applications requiring codes in bases larger than 2.
+
+				Length-Limited Huffman limits the maximum code length, sacrificing optimality to ensure length
+				constraints. This
+				is useful for applications with bit length limitations.
+
+				Canonical Huffman rearranges codes for easier storage and decoding, while maintaining the optimality of
+				the
+				original codes. This variant is useful in applications requiring fast decoding.
+
+				Dynamic Huffman updates the Huffman tree periodically, balancing between compression efficiency and
+				update cost.
+				This variant is useful for data with slowly changing frequency distributions.
+
+				The choice of Huffman variant depends on the symbolistics of the data, speed requirements, memory
+				constraints, and the nature of the application.
+			</div>
+		</div>
+
+		<!-- Slide 9: Performance Analysis -->
+		<div class="slide" id="slide9">
+			<div class="slide-header">
+				<h2 class="slide-title">Performance Analysis of Huffman Algorithm</h2>
+			</div>
+			<div class="slide-content">
+				<div class="two-column">
+					<div>
+						<div class="animate">
+							<h3 class="text-xl font-bold mb-4 text-blue-800">Algorithm Complexity</h3>
+							<div class="bg-blue-50 p-4 rounded-lg mb-6">
+								<p class="mb-2"><strong>Time Complexity:</strong></p>
+								<ul class="list-disc pl-6 mb-2">
+									<li>Frequency counting: O(n)</li>
+									<li>Huffman tree construction: O(k log k)</li>
+									<li>Data encoding: O(n)</li>
+									<li>Total: O(n + k log k)</li>
+								</ul>
+								<p class="text-sm">(n is data length, k is number of distinct symbols)</p>
+
+								<p class="mt-4 mb-2"><strong>Space Complexity:</strong></p>
+								<ul class="list-disc pl-6">
+									<li>O(k) for the Huffman tree</li>
+									<li>O(n) for the encoded data</li>
+								</ul>
+							</div>
+						</div>
+
+						<div class="animate delay-1">
+							<h3 class="text-xl font-bold mb-4 text-blue-800">Experimental Results</h3>
+							<p>For ASCII text files:</p>
+							<ul class="list-disc pl-6">
+								<li class="mb-2">File size reduction around 20%</li>
+								<li class="mb-2">With data having many repeated symbols: compression ratio up to 30%
+								</li>
+								<li>Efficiency decreases with uniformly distributed data (high entropy)</li>
+							</ul>
+						</div>
+					</div>
+					<div>
+						<div class="animate delay-2">
+							<h3 class="text-xl font-bold mb-4 text-blue-800">Advantages</h3>
+							<ul class="list-disc pl-6 mb-6">
+								<li class="mb-2">Theoretically optimal for encoding individual symbols</li>
+								<li class="mb-2">No data loss during decompression</li>
+								<li class="mb-2">Simple and efficient</li>
+								<li>Widely used in many popular compression algorithms</li>
+							</ul>
+						</div>
+
+						<div class="animate delay-3">
+							<h3 class="text-xl font-bold mb-4 text-blue-800">Disadvantages</h3>
+							<ul class="list-disc pl-6">
+								<li class="mb-2">Needs to know frequencies before encoding (static version)</li>
+								<li class="mb-2">Requires storing the tree/code table with the compressed data</li>
+								<li class="mb-2">Not efficient with high-entropy data</li>
+								<li>Doesn't exploit correlation between symbols</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="speaker-notes">
+				Regarding the complexity of the Huffman algorithm, we have:
+
+				Time complexity: O(n + k log k), where n is the data length and k is the number of distinct symbols.
+				The
+				frequency counting step has O(n) complexity, the Huffman tree construction has O(k log k) complexity,
+				and the
+				data encoding has O(n) complexity.
+
+				Space complexity: O(k) for the Huffman tree and O(n) for the encoded data.
+
+				Experimental results show that for standard ASCII text files, the Huffman algorithm reduces file size by
+				around
+				20%. For data with many repeated symbols, the compression ratio can be up to 30%.
+
+				The main advantages of the Huffman algorithm are that it's theoretically optimal for encoding individual
+				symbols, has no data loss during decompression, is simple and efficient, and is widely used in many
+				popular
+				compression algorithms.
+
+				However, the algorithm also has some disadvantages: it needs to know frequencies before encoding (in the
+				static
+				version), requires storing the tree/code table with the compressed data, is not efficient with
+				high-entropy
+				data, and doesn't exploit correlation between symbols.
+			</div>
+		</div>
+
+		<!-- Slide 10: Applications -->
+		<div class="slide" id="slide10">
+			<div class="slide-header">
+				<h2 class="slide-title">Applications of Huffman Algorithm</h2>
+			</div>
+			<div class="slide-content">
+				<div class="grid grid-cols-2 gap-6">
+					<div class="bg-blue-50 p-4 rounded-lg animate">
+						<h3 class="text-xl font-bold mb-3 text-blue-800">File Compression</h3>
+						<ul class="list-disc pl-6">
+							<li class="mb-2">7-Zip: Uses DEFLATE compression (combining LZ77 and Huffman)</li>
+							<li class="mb-2">WinZip and WinRAR: Commercial archiving tools</li>
+							<li class="mb-2">macOS Archive Utility: Built-in archiving utility in macOS</li>
+							<li>Command-line tools: gzip, zip on Linux/macOS</li>
+						</ul>
+					</div>
+
+					<div class="bg-blue-50 p-4 rounded-lg animate delay-1">
+						<h3 class="text-xl font-bold mb-3 text-blue-800">Multimedia Compression</h3>
+						<ul class="list-disc pl-6">
+							<li class="mb-2">JPEG: Uses Huffman to compress pixel data after DCT transformation</li>
+							<li class="mb-2">MP3: Compresses quantized frequency data</li>
+							<li class="mb-2">MPEG-4: Compresses motion vector data in video</li>
+							<li>PNG: Image format using DEFLATE compression algorithm</li>
+						</ul>
+					</div>
+
+					<div class="bg-blue-50 p-4 rounded-lg animate delay-2">
+						<h3 class="text-xl font-bold mb-3 text-blue-800">Data Transmission and Networks</h3>
+						<ul class="list-disc pl-6">
+							<li class="mb-2">HTTP Content-Encoding (GZIP): Compressing CSS, HTML, JS files</li>
+							<li class="mb-2">Fax machines and telephones: Using Group 3 fax encoding</li>
+							<li>Wireless data transmission: Saving bandwidth</li>
+						</ul>
+					</div>
+
+					<div class="bg-blue-50 p-4 rounded-lg animate delay-3">
+						<h3 class="text-xl font-bold mb-3 text-blue-800">Artificial Intelligence and Machine Learning
+						</h3>
+						<ul class="list-disc pl-6">
+							<li class="mb-2">Decision tree compression: Optimizing large decision trees</li>
+							<li class="mb-2">Natural Language Processing (NLP): Dictionary-based text compression</li>
+							<li>Language modeling: Reducing model size</li>
+						</ul>
+					</div>
+				</div>
+
+				<div class="mt-6 bg-green-50 p-4 rounded-lg animate delay-4">
+					<h3 class="text-xl font-bold mb-3 text-green-800">Hardware and Embedded Systems</h3>
+					<div class="grid grid-cols-2 gap-4">
+						<ul class="list-disc pl-6">
+							<li class="mb-2">GPUs and FPGAs: Real-time compression in high-performance computing</li>
+							<li>Data storage systems: Reducing file size in SSDs and HDDs</li>
+						</ul>
+						<ul class="list-disc pl-6">
+							<li class="mb-2">Embedded systems: Memory optimization in IoT devices</li>
+							<li>Control boards: Reducing firmware size</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<div class="speaker-notes">
+				The Huffman algorithm is widely applied in many fields:
+
+				In file compression, Huffman is a component of DEFLATE, the compression algorithm used in 7-Zip, WinZip,
+				WinRAR,
+				and other popular compression tools.
+
+				In multimedia compression, Huffman is used in JPEG to compress pixel data after DCT transformation, in
+				MP3 to
+				compress quantized frequency data, and in MPEG-4 to compress motion vector data.
+
+				In data transmission and networks, Huffman is used in HTTP Content-Encoding to compress CSS, HTML, and
+				JavaScript files, helping speed up web page loading.
+
+				In artificial intelligence and machine learning, Huffman is applied in decision tree compression and
+				natural
+				language processing.
+
+				In hardware and embedded systems, Huffman is used in GPUs, FPGAs, data storage systems, and IoT devices
+				to
+				optimize memory and performance.
+			</div>
+		</div>
+
+		<!-- Slide 11: Conclusion -->
+		<div class="slide" id="slide11">
+			<div class="slide-header">
+				<h2 class="slide-title">Conclusion</h2>
+			</div>
+			<div class="slide-content">
+				<div class="flex flex-col items-center">
+					<div class="w-4/5 animate">
+						<h3 class="text-xl font-bold mb-6 text-blue-800 text-center">Summary of Huffman Algorithm</h3>
+						<div class="bg-blue-50 p-6 rounded-lg mb-8">
+							<ul class="list-disc pl-6 space-y-3">
+								<li>Lossless compression algorithm based on prefix codes</li>
+								<li>Assigns shorter codes to frequent symbols, longer codes to rare symbols</li>
+								<li>Complexity O(n + k log k) where n is data size, k is number of distinct symbols
+								</li>
+								<li>Compression ratio around 20-30% for normal text</li>
+								<li>Many variants including Adaptive Huffman, Canonical Huffman, Length-Limited Huffman
+								</li>
+								<li>Widely applied in file compression, multimedia, networks, and embedded systems</li>
+							</ul>
+						</div>
+					</div>
+
+					<div class="w-4/5 animate delay-1">
+						<h3 class="text-xl font-bold mb-6 text-blue-800 text-center">Role in Computer Science</h3>
+						<div class="bg-green-50 p-6 rounded-lg text-center">
+							<p class="mb-4">Despite being over 70 years old, the Huffman algorithm remains a foundation
+								for many
+								modern compression algorithms and is an important basic knowledge in computer science.
+							</p>
+							<p class="font-bold text-green-800">Huffman is a classic example of how a simple and
+								efficient algorithm
+								can create long-lasting and profound impacts in technology.</p>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="speaker-notes">
+				In summary, the Huffman algorithm is one of the most basic and important data compression algorithms in
+				computer
+				science. It is a lossless compression algorithm based on prefix codes, assigning shorter codes to
+				frequently
+				occurring symbols and longer codes to rare symbols.
+
+				In terms of efficiency, the algorithm has a complexity of O(n + k log k), where n is the data size and k
+				is the
+				number of distinct symbols. For normal text, the compression ratio is around 20-30%.
+
+				Over time, many variants of Huffman have been developed, such as Adaptive Huffman, Canonical Huffman,
+				and
+				Length-Limited Huffman, each with its own advantages and applications.
+
+				Despite being over 70 years old, the Huffman algorithm remains a foundation for many modern compression
+				algorithms and is an important basic knowledge in computer science. It is a classic example of how a
+				simple and
+				efficient algorithm can create long-lasting and profound impacts in technology.
+			</div>
+		</div>
+
+		<!-- Slide 12: Q&A -->
+		<div class="slide" id="slide12">
+			<div class="slide-content flex flex-col items-center justify-center">
+				<div class="text-center animate">
+					<h1 class="text-6xl font-bold text-blue-800 mb-8">Thank you for your watching!</h1>
+					<div class="text-center animate delay-2">
+						<p class="text-3xl font-bold text-blue-800 mb-8">Group 4</p>
+						<table class="mx-auto mb-4" style="border-collapse: separate; border-spacing: 15px 0;">
+							<tr>
+								<td class="text-left font-bold">Theory Lecturer</td>
+								<td class="text-left">Dr. </td>
+								<td class="text-left">Nguyen Thanh Phuong</td>
+								<td class="text-left font-bold">Students</td>
+								<td class="text-left">24127104 </td>
+								<td class="text-left">Du Hoai Phuc - Leader</td>
+							</tr>
+							<tr>
+								<td class="text-left font-bold">Lab Lecturer</td>
+								<td class="text-left">Dr. </td>
+								<td class="text-left">Le Ngoc Thao</td>
+								<td></td>
+								<td class="text-left">24127008 </td>
+								<td class="text-left">Truong Nhat Phat</td>
+							</tr>
+							<tr>
+								<td></td>
+								<td class="text-left">M.S. </td>
+								<td class="text-left">Nguyen Thanh Tinh</td>
+								<td></td>
+								<td class="text-left">24127173 </td>
+								<td class="text-left">Nguyen Tuan Hung</td>
+							</tr>
+						</table>
+					</div>
+				</div>
+			</div>
+			<div class="speaker-notes">
+				Thank you for attending our presentation about the Huffman algorithm. Now, we would be happy to hear and
+				answer
+				your questions about this algorithm.
+			</div>
+		</div>
+	</div>
+
+	<div class="navigation">
+		<button class="nav-button" id="prevSlide">&lt;</button>
+		<button class="nav-button" id="nextSlide">&gt;</button>
+	</div>
+
+	<div class="slide-number" id="slideNumber">Slide 1/12</div>
+
+	<button id="toggleNotes"
+		class="fixed top-4 right-4 bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+		style="display: none;">Show
+		Notes</button>
+
+	<script>
+		// ---------- Các dữ liệu cho trực quan hóa cây Huffman ----------
+		// Updated Huffman data for the word "Huffman"
+		const huffmanData = [
+			{
+				step: 1,
+				description: "Start with all symbols from \"Huffman\" in the min-heap, ordered by frequency.",
+				heap: [
+					{ char: 'H', freq: 1 },
+					{ char: 'u', freq: 1 },
+					{ char: 'm', freq: 1 },
+					{ char: 'a', freq: 1 },
+					{ char: 'n', freq: 1 },
+					{ char: 'f', freq: 2 }
+				],
+				removed: [],
+				tree: []
+			},
+			{
+				step: 2,
+				description: "Take two nodes with lowest frequency: 'H' (1) and 'u' (1). Create a new node with frequency 2.",
+				heap: [
+					{ char: 'm', freq: 1 },
+					{ char: 'a', freq: 1 },
+					{ char: 'n', freq: 1 },
+					{ char: 'f', freq: 2 },
+					{ char: '', freq: 2 }
+				],
+				removed: [
+					{ char: 'H', freq: 1 },
+					{ char: 'u', freq: 1 }
+				],
+				tree: [
+					{ id: 'node1', char: '', freq: 2, x: 400, y: 70 },
+					{ id: 'node2', char: 'H', freq: 1, x: 300, y: 180, parent: 'node1', edge: '0' },
+					{ id: 'node3', char: 'u', freq: 1, x: 500, y: 180, parent: 'node1', edge: '1' }
+				]
+			},
+			{
+				step: 3,
+				description: "Take two nodes with lowest frequency: 'm' (1) and 'a' (1). Create a new node with frequency 2.",
+				heap: [
+					{ char: 'n', freq: 1 },
+					{ char: 'f', freq: 2 },
+					{ char: '', freq: 2 },
+					{ char: '', freq: 2 }
+				],
+				removed: [
+					{ char: 'm', freq: 1 },
+					{ char: 'a', freq: 1 }
+				],
+				tree: [
+					{ id: 'node4', char: '', freq: 2, x: 400, y: 70 },
+					{ id: 'node5', char: 'm', freq: 1, x: 300, y: 180, parent: 'node4', edge: '0' },
+					{ id: 'node6', char: 'a', freq: 1, x: 500, y: 180, parent: 'node4', edge: '1' }
+				]
+			},
+			{
+				step: 4,
+				description: "Take two nodes with lowest frequency: 'n' (1) and 'f' (2). Create a new node with frequency 3.",
+				heap: [
+					{ char: '', freq: 2 },
+					{ char: '', freq: 2 },
+					{ char: '', freq: 3 }
+				],
+				removed: [
+					{ char: 'n', freq: 1 },
+					{ char: 'f', freq: 2 }
+				],
+				tree: [
+					{ id: 'node7', char: '', freq: 3, x: 400, y: 70 },
+					{ id: 'node8', char: 'n', freq: 1, x: 300, y: 180, parent: 'node7', edge: '0' },
+					{ id: 'node9', char: 'f', freq: 2, x: 500, y: 180, parent: 'node7', edge: '1' }
+				]
+			},
+			{
+				step: 5,
+				description: "Merge the first internal node (2) and second internal node (2) to create a new node with frequency 4.",
+				heap: [
+					{ char: '', freq: 3 },
+					{ char: '', freq: 4 }
+				],
+				removed: [
+					{ char: '', freq: 2 },
+					{ char: '', freq: 2 }
+				],
+				tree: [
+					{ id: 'root', char: '', freq: 4, x: 400, y: 50 },
+					{ id: 'node4', char: '', freq: 2, x: 300, y: 150, parent: 'root', edge: '0' },
+					{ id: 'node5', char: 'H', freq: 1, x: 250, y: 250, parent: 'node4', edge: '0' },
+					{ id: 'node6', char: 'u', freq: 1, x: 350, y: 250, parent: 'node4', edge: '1' },
+					{ id: 'node7', char: '', freq: 2, x: 500, y: 150, parent: 'root', edge: '1' },
+					{ id: 'node8', char: 'm', freq: 1, x: 450, y: 250, parent: 'node7', edge: '0' },
+					{ id: 'node9', char: 'a', freq: 1, x: 550, y: 250, parent: 'node7', edge: '1' }
+				]
+			},
+			{
+				step: 6,
+				description: "Complete the Huffman tree by connecting all remaining nodes based on their frequencies.",
+				heap: [],
+				removed: [
+					{ char: '', freq: 3 },
+					{ char: '', freq: 4 }
+				],
+				tree: [
+					{ "id": "node11", "char": "", "freq": 7, "x": 250, "y": 50 },
+
+					{ "id": "node10", "char": "", "freq": 4, "x": 150, "y": 150, "parent": "node11", "edge": "0" },
+
+					{ "id": "node1", "char": "", "freq": 2, "x": 75, "y": 250, "parent": "node10", "edge": "0" },
+					{ "id": "node2", "char": "H", "freq": 1, "x": 25, "y": 350, "parent": "node1", "edge": "0" },
+					{ "id": "node3", "char": "u", "freq": 1, "x": 100, "y": 350, "parent": "node1", "edge": "1" },
+
+					{ "id": "node4", "char": "", "freq": 2, "x": 225, "y": 250, "parent": "node10", "edge": "1" },
+					{ "id": "node5", "char": "m", "freq": 1, "x": 200, "y": 350, "parent": "node4", "edge": "0" },
+					{ "id": "node6", "char": "a", "freq": 1, "x": 275, "y": 350, "parent": "node4", "edge": "1" },
+
+					{ "id": "node7", "char": "", "freq": 3, "x": 350, "y": 150, "parent": "node11", "edge": "1" },
+					{ "id": "node8", "char": "n", "freq": 1, "x": 300, "y": 250, "parent": "node7", "edge": "0" },
+					{ "id": "node9", "char": "f", "freq": 2, "x": 400, "y": 250, "parent": "node7", "edge": "1" }
+				]
+			}
+		];
+		// ---------- Huffman Tree Visualization ----------
+		let currentStep = 1;
+		const treeContainer = document.getElementById('treeContainer');
+		const minHeap = document.getElementById('minHeap');
+		const stepDescription = document.getElementById('stepDescription');
+		const stepIndicator = document.getElementById('stepIndicator');
+		const prevStepButton = document.getElementById('prevStep');
+		const nextStepButton = document.getElementById('nextStep');
+
+		// Adjusting the rendering function to scale the tree better for the larger container
+		function renderHuffmanVisualization(step) {
+			// Don't re-render if already rendering this step
+			if (renderHuffmanVisualization.currentlyRendering === step) {
+				return;
+			}
+
+			renderHuffmanVisualization.currentlyRendering = step;
+
+			const data = huffmanData[step - 1];
+			const prevData = step > 1 ? huffmanData[step - 2] : null;
+
+			// Store existing node positions before updating
+			const existingNodes = {};
+			if (treeContainer.children.length > 0) {
+				Array.from(treeContainer.children).forEach(el => {
+					if (el.classList.contains('tree-node')) {
+						existingNodes[el.id] = {
+							left: el.style.left,
+							top: el.style.top
+						};
+					}
+				});
+			}
+
+			// Update step indicator
+			stepIndicator.textContent = `Step ${step}/${huffmanData.length}`;
+
+			// Update step description with fade effect
+			stepDescription.style.opacity = 0;
+			setTimeout(() => {
+				stepDescription.textContent = data.description;
+				stepDescription.style.opacity = 1;
+			}, 300);
+
+			// Get container dimensions for scaling
+			const containerWidth = treeContainer.clientWidth;
+			const containerHeight = treeContainer.clientHeight;
+
+			// Scale factor for tree coordinates
+			const scaleX = containerWidth / 700;
+			const scaleY = containerHeight / 450;
+
+			// Clear current tree with animation if moving to a new step
+			if (prevData) {
+				// First fade out all existing nodes and edges
+				Array.from(treeContainer.children).forEach(el => {
+					el.style.opacity = '0';
+				});
+
+				// Then remove them after animation completes
+				setTimeout(() => {
+					treeContainer.innerHTML = '';
+
+					// Now render the new tree with animations
+					renderTree();
+				}, 300);
+			} else {
+				// No previous data, just render the tree
+				treeContainer.innerHTML = '';
+				renderTree();
+			}
+
+			function renderTree() {
+				// Only proceed if there are nodes to render
+				if (data.tree.length > 0) {
+					// Find the boundaries of the entire tree
+					let minX = data.tree[0].x;
+					let maxX = data.tree[0].x;
+					let minY = data.tree[0].y;
+
+					// Find the min/max coordinates to determine tree boundaries
+					data.tree.forEach(node => {
+						if (node.x < minX) minX = node.x;
+						if (node.x > maxX) maxX = node.x;
+						if (node.y < minY) minY = node.y;
+					});
+
+					// Get container dimensions
+					const containerCenterX = containerWidth / 2;
+					const containerCenterY = containerHeight / 2;
+
+					// Calculate the tree center X coordinate
+					const treeCenterX = (minX + maxX) / 2;
+
+					// Calculate offsets to center the entire tree horizontally
+					// and position the tree vertically with some padding at the top
+					const offsetX = containerCenterX - treeCenterX * scaleX;
+					const offsetY = containerCenterY - (minY + 150) * scaleY; // Adjust vertical positioning
+
+					// Render new tree with scaling and centering
+					data.tree.forEach(node => {
+						// Create node
+						const nodeElement = document.createElement('div');
+						nodeElement.id = node.id;
+
+						// Check if this node existed in previous step
+						const isNewNode = !prevData || !prevData.tree.some(n => n.id === node.id);
+						nodeElement.className = node.char ? 'tree-node tree-leaf' : 'tree-node tree-internal';
+
+						if (isNewNode) {
+							nodeElement.classList.add('new');
+						}
+
+						// Scale node position and center it
+						nodeElement.style.left = `${node.x * scaleX + offsetX}px`;
+						nodeElement.style.top = `${node.y * scaleY + offsetY}px`;
+
+						// If this is an existing node that's moving, animate from previous position
+						if (!isNewNode && existingNodes[node.id]) {
+							// Set initial position to the previous position
+							nodeElement.style.left = existingNodes[node.id].left;
+							nodeElement.style.top = existingNodes[node.id].top;
+
+							// Force reflow to ensure the transition starts from the previous position
+							nodeElement.offsetHeight;
+
+							// Then set the new position which will trigger the transition
+							setTimeout(() => {
+								nodeElement.style.left = `${node.x * scaleX + offsetX}px`;
+								nodeElement.style.top = `${node.y * scaleY + offsetY}px`;
+							}, 50);
+						}
+
+						nodeElement.innerHTML = node.char ? `${node.char}<br>${node.freq}` : node.freq;
+						treeContainer.appendChild(nodeElement);
+
+						// Create edge if there's a parent node
+						if (node.parent) {
+							const parentNode = data.tree.find(n => n.id === node.parent);
+							if (parentNode) {
+								// Delay edge creation slightly for better visual effect
+								setTimeout(() => {
+									const edge = document.createElement('div');
+									const isNewEdge = !prevData || !prevData.tree.some(n =>
+										n.id === node.id && n.parent === node.parent
+									);
+
+									edge.className = 'tree-edge';
+									if (isNewEdge) {
+										edge.classList.add('new');
+									}
+
+									// Calculate edge position and rotation angle with scaling and centering
+									const x1 = parentNode.x * scaleX + offsetX + 35; // Center of parent node
+									const y1 = parentNode.y * scaleY + offsetY + 35;
+									const x2 = node.x * scaleX + offsetX + 35; // Center of child node
+									const y2 = node.y * scaleY + offsetY + 35;
+
+									const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+									const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+
+									edge.style.width = `${length}px`;
+									edge.style.left = `${x1}px`;
+									edge.style.top = `${y1}px`;
+									edge.style.setProperty('--angle', `${angle}deg`);
+									edge.style.transform = `rotate(${angle}deg)`;
+
+									treeContainer.appendChild(edge);
+
+									// Add edge label (0/1) with a slight delay
+									if (node.edge) {
+										setTimeout(() => {
+											const edgeLabel = document.createElement('div');
+											edgeLabel.className = 'edge-label';
+											if (isNewEdge) {
+												edgeLabel.classList.add('new');
+											}
+
+											edgeLabel.textContent = node.edge;
+
+											// Position label in the middle of the edge with centering
+											edgeLabel.style.left = `${(x1 + x2) / 2 - 12.5}px`;
+											edgeLabel.style.top = `${(y1 + y2) / 2 - 12.5}px`;
+
+											treeContainer.appendChild(edgeLabel);
+										}, 200);
+									}
+								}, 300);
+							}
+						}
+					});
+				}
+			}
+
+			// Render min-heap with animations
+			renderHeap();
+
+			function renderHeap() {
+				// First fade out existing heap items
+				Array.from(minHeap.children).forEach(el => {
+					el.style.opacity = '0';
+				});
+
+				setTimeout(() => {
+					// Clear min-heap
+					minHeap.innerHTML = '';
+
+					// Display removed items (if any) with animation
+					if (data.removed.length > 0) {
+						const removedItems = document.createElement('div');
+						removedItems.className = 'mb-2';
+						removedItems.style.opacity = '0';
+						removedItems.innerHTML = '<p class="text-sm font-bold">Removed:</p>';
+
+						const removedContainer = document.createElement('div');
+						removedContainer.className = 'flex flex-wrap gap-2';
+
+						data.removed.forEach((item, index) => {
+							const heapItem = document.createElement('div');
+							heapItem.className = 'heap-item removed';
+
+							// Stagger the animation for removed items
+							if (step > 1 && !prevData.removed.some(r =>
+								r.char === item.char && r.freq === item.freq
+							)) {
+								setTimeout(() => {
+									heapItem.classList.add('highlight');
+								}, index * 150);
+							}
+
+							heapItem.textContent = item.char ? `${item.char}:${item.freq}` : item.freq;
+							removedContainer.appendChild(heapItem);
+						});
+
+						removedItems.appendChild(removedContainer);
+						minHeap.appendChild(removedItems);
+
+						// Fade in removed items
+						setTimeout(() => {
+							removedItems.style.opacity = '1';
+							removedItems.style.transition = 'opacity 1.0s ease';
+						}, 100);
+					}
+
+					// Display items in heap with animation
+					const heapLabel = document.createElement('p');
+					heapLabel.className = 'text-sm font-bold';
+					heapLabel.textContent = 'Min-Heap:';
+					heapLabel.style.opacity = '0';
+					minHeap.appendChild(heapLabel);
+
+					// Fade in heap label
+					setTimeout(() => {
+						heapLabel.style.opacity = '1';
+						heapLabel.style.transition = 'opacity 1.0s ease';
+					}, 200);
+
+					if (data.heap.length > 0) {
+						const heapContainer = document.createElement('div');
+						heapContainer.className = 'flex flex-wrap gap-2';
+						heapContainer.style.opacity = '0';
+
+						data.heap.forEach((item, index) => {
+							const heapItem = document.createElement('div');
+							heapItem.className = 'heap-item';
+
+							// Highlight newly added items
+							if (prevData && !prevData.heap.some(h =>
+								h.char === item.char && h.freq === item.freq
+							)) {
+								setTimeout(() => {
+									heapItem.classList.add('highlight');
+								}, 500 + index * 150);
+							}
+
+							heapItem.textContent = item.char ? `${item.char}:${item.freq}` : item.freq;
+							heapContainer.appendChild(heapItem);
+						});
+
+						minHeap.appendChild(heapContainer);
+
+						// Fade in heap container
+						setTimeout(() => {
+							heapContainer.style.opacity = '1';
+							heapContainer.style.transition = 'opacity 1.0s ease';
+						}, 300);
+					} else {
+						const emptyHeap = document.createElement('p');
+						emptyHeap.textContent = 'Min-Heap is empty (Huffman tree is complete)';
+						emptyHeap.style.opacity = '0';
+						minHeap.appendChild(emptyHeap);
+
+						// Fade in empty heap message
+						setTimeout(() => {
+							emptyHeap.style.opacity = '1';
+							emptyHeap.style.transition = 'opacity 1.0s ease';
+						}, 300);
+					}
+				}, 300);
+			}
+
+			setTimeout(() => {
+				renderHuffmanVisualization.currentlyRendering = null;
+			}, 800);
+		}
+
+		renderHuffmanVisualization.currentlyRendering = null;
+
+		prevStepButton.addEventListener('click', () => {
+			if (currentStep > 1 && !isAnimating) {
+				isAnimating = true;
+				currentStep--;
+				renderHuffmanVisualization(currentStep);
+
+				// Reset animation flag with a safety timeout
+				setTimeout(() => {
+					isAnimating = false;
+				}, 1000);
+			}
+		});
+
+		nextStepButton.addEventListener('click', () => {
+			if (currentStep < huffmanData.length && !isAnimating) {
+				isAnimating = true;
+				currentStep++;
+				renderHuffmanVisualization(currentStep);
+
+				// Reset animation flag with a safety timeout
+				setTimeout(() => {
+					isAnimating = false;
+				}, 1000);
+			}
+		});
+
+		// Add this variable at the top with other variables
+		let isAnimating = false;
+
+		// ---------- Main slide navigation functions ----------
+		const slides = document.querySelectorAll('.slide');
+		const prevButton = document.getElementById('prevSlide');
+		const nextButton = document.getElementById('nextSlide');
+		const slideNumber = document.getElementById('slideNumber');
+		const progressBar = document.getElementById('progressBar');
+		const toggleNotesButton = document.getElementById('toggleNotes');
+		const speakerNotes = document.querySelectorAll('.speaker-notes');
+
+		let currentSlide = 0;
+		const totalSlides = slides.length;
+
+		// Update progress bar
+		function updateProgress() {
+			const progress = ((currentSlide + 1) / totalSlides) * 100;
+			progressBar.style.width = `${progress}%`;
+			slideNumber.textContent = `Slide ${currentSlide + 1}/${totalSlides}`;
+		}
+
+		// Show current slide
+		function showSlide(index) {
+			slides.forEach((slide, i) => {
+				slide.classList.remove('active');
+				if (i === index) {
+					slide.classList.add('active');
+				}
+			});
+
+			currentSlide = index;
+			updateProgress();
+
+			// Initialize visualization when reaching slide 5
+			if (index === 4 && document.getElementById('huffmanVisualization')) {
+				currentStep = 1;
+				renderHuffmanVisualization(currentStep);
+			}
+		}
+
+		// Navigate to previous slide
+		function prevSlide() {
+			if (currentSlide > 0) {
+				showSlide(currentSlide - 1);
+			}
+		}
+
+		// Navigate to next slide
+		function nextSlide() {
+			if (currentSlide < totalSlides - 1) {
+				showSlide(currentSlide + 1);
+			}
+		}
+
+		// Toggle speaker notes
+		function toggleNotes() {
+			const notesVisible = speakerNotes[0].style.display === 'block';
+			speakerNotes.forEach(note => {
+				note.style.display = notesVisible ? 'none' : 'block';
+			});
+			toggleNotesButton.textContent = notesVisible ? 'Show Notes' : 'Hide Notes';
+		}
+
+		// Event listeners
+		prevButton.addEventListener('click', prevSlide);
+		nextButton.addEventListener('click', nextSlide);
+		toggleNotesButton.addEventListener('click', toggleNotes);
+
+		// Keyboard navigation
+		document.addEventListener('keydown', (e) => {
+			if (e.key === 'ArrowLeft') {
+				prevSlide();
+			} else if (e.key === 'ArrowRight') {
+				nextSlide();
+			} else if (e.key === 'n') {
+				toggleNotes();
+			}
+		});
+
+		// Initialize
+		updateProgress();
+
+		// Initialize with animations on first load of slide 5
+		// Initialize with animations on first load of slide 5
+		document.addEventListener('DOMContentLoaded', () => {
+			let hasInitialized = false;
+
+			// Function to check if we're on the Huffman tree visualization slide
+			function checkAndInitializeVisualization() {
+				const activeSlide = document.querySelector('.slide.active');
+				const slideIndex = Array.from(slides).indexOf(activeSlide);
+
+				// If we're on slide 5 (index 4) and haven't initialized yet
+				if (slideIndex === 4 && !hasInitialized && typeof renderHuffmanVisualization === 'function') {
+					hasInitialized = true; // Set flag to prevent re-initialization
+					currentStep = 1;
+					setTimeout(() => {
+						renderHuffmanVisualization(currentStep);
+						// Reset flag after a delay to allow re-initialization if user navigates away and back
+						setTimeout(() => {
+							hasInitialized = false;
+						}, 1000);
+					}, 200);
+				}
+			}
+
+			// Check when slides change
+			function handleSlideChange() {
+				checkAndInitializeVisualization();
+			}
+
+			// Update showSlide function to trigger initialization
+			const originalShowSlide = window.showSlide || function () { };
+			window.showSlide = function (index) {
+				originalShowSlide(index);
+				setTimeout(handleSlideChange, 100);
+			};
+
+			// Run check on initial page load
+			setTimeout(checkAndInitializeVisualization, 500);
+		});
+	</script>
+</body>
+
+</html>

@@ -1,0 +1,172 @@
+\section{Adaptive Huffman Coding}
+\begin{itemize}
+    \item Unlike static Huffman coding, where the code tree is built based on the given data set, which can not be changed while encoding. The adaptive version can construct and update the tree dynamically and is very useful when the frequency of the symbol is unknown or changes during transmission. There are 2 common algorithm variations to construct the dynamic Huffman tree.
+    \item For the simplicity of this section, let's suppose that N embodies the length of the input data, M stands for the size of the character set and the algorithm can not have full access to the input data (streaming, video, data is being split into many chunks).
+\end{itemize}
+\subsection{Faller-Gallager-Knuth algorithm (FGK)}
+FGK is known as one of the earliest adaptive Huffman coding algorithms.
+\begin{enumerate}[label=\textbf{\Alph*.}]
+    \item \textbf{Principles of FGK Huffman Coding}
+    \begin{itemize}
+        \item The algorithm constructs the dynamic Huffman tree that evolves by reading symbols in the input data one by one. The tree starts with an empty node, indicating that no symbol is added to the tree. The Huffman tree grows as more symbols are encountered.
+        \item There are some main principles:
+        \begin{itemize}
+            \item \textbf{Initial empty tree:} The Huffman tree just includes a special node called the “0-node”.
+            \item \textbf{Incremental updates:}  increase frequency of a symbol when the symbol exists in the tree or create a new leaf to store that symbol.
+            \item \textbf{Tree rebalancing:} Swap nodes or branches of the tree if necessary to \\construct a Huffman tree and get the optimal compression.
+        \end{itemize}
+    \end{itemize}
+    \item \textbf{The algorithm}
+    \begin{itemize}
+        \item \textbf{Initialization:}
+        \begin{itemize}
+            \item Create an empty tree with a 0-node.
+            \item Create a structure of a node to store its left (right) child, frequency, symbol, and node number (its position in a level-order traversal and from left to right at each level).
+        \end{itemize}
+        \item \textbf{Encoding the symbol:}
+        \begin{itemize}
+           \item For each symbol, if the symbol is already present in the Huffman tree, Encoder will send the binary code of that symbol. When a new symbol is encountered, Encoder will send the binary code of the 0-node and then send the ascii code of that symbol.
+        \end{itemize}
+        \item \textbf{Processing symbols:}
+        \begin{itemize}
+           \item After sending the code, the algorithm will process the symbol:
+                \begin{itemize}
+                    \item If it’s a new symbol:
+                        \begin{enumerate}[label={•}]
+                            \item Take the stored position or traversal to the 0-node.
+                            \item Replace the 0-node with a new parent node and its childs are
+                            \begin{itemize}
+                                \item Left node: for the new 0-node.
+                                \item Right node: for the new symbols.
+                            \end{itemize}
+                            \item Update and rebalance the Huffman tree.
+                        \end{enumerate}
+                \end{itemize}
+        \end{itemize}
+        \item \textbf{Updating and rebalancing the Huffman tree}
+        \begin{itemize}
+            \item Locating the node: In the previous step, the algorithm already stands at the node that contains the symbol that was just processed.
+            \item Use a traversal algorithm to travel from the root and find a successor node that has a frequency equal to the current node (make sure that it is closer to the root). 
+            \item Check if it is a valid successor node (not a parent of current node, not current node, and not a null node). If valid, swap successor and current node. 
+            \item Increase the frequency of the current node by one.
+            \item Assign the current node to its parent.
+            \item Continue to find and swap until the current node reaches the root.
+            \item Increase the frequency of the root by one.
+        \end{itemize}
+        \item \textbf{Decoding:}
+        \begin{itemize}
+            \item Decoder will receive a binary code from the Encoder. If the binary code is 0-node then the next 8 bits will be the ascii code for the new symbol.
+            \item Encoder and Decoder both use the same algorithm so they will achieve the same tree for each bit sent and received.
+        \end{itemize}
+    \end{itemize}
+\end{enumerate}
+\begin{enumerate}[label=\textbf{\Alph*.}]
+    \item \textbf{Analyze the algorithm:}
+    \begin{itemize}
+        \item \textbf{Time Complexity}
+        \begin{itemize}
+            \item O(NM): For each symbol, the algorithm will traverse from root to leaf of the Huffman tree (in average case the Huffman tree height is log M, in the worst case scenario the Huffman tree height can be M).
+        \end{itemize}
+        \item  \textbf{Space Complexity:}
+        \begin{itemize}
+            \item O(M): Huffman tree requires about M nodes to store each symbol.
+        \end{itemize}
+    \end{itemize}
+\end{enumerate}
+\subsection{Vitter algorithm (Algorithm V)}
+\begin{enumerate}[label=\textbf{\Alph*.}]
+    \item \textbf{Introduction}
+    \begin{itemize}
+        \item Vitter’s algorithm is an improvement of the FGK algorithm. To help make Huffman Coding more consistent. Basic principles of the V algorithm are the same as in the FGK algorithm.
+        \item The Vitter algorithm has important terminologies and constraints:
+        \begin{itemize}
+            \item \textbf{Implicit Numbering:} Nodes are numbered in increasing order from left to right and from bottom to top. This means we have to set the left node with a lower value, the higher value to the right node, and a higher value than the right node to their parent node.
+            \item \textbf{Blocks:} formed by Nodes that have the same weight and the same type (leaf node or internal node).
+            \item \textbf{Leader:} highest numbered node in a block.
+        \end{itemize}
+    \end{itemize}
+    \item \textbf{Algorithm}
+    \begin{itemize}
+        \item Like the FGK algorithm, Vitter starts with an empty tree with a “NTY” node (Not Yet Transmission), which is similar to the 0-node. Encoding and processing symbols with the same method of FGK.
+        \item The difference comes from updating and rebalancing the Huffman tree process.
+        \item Instead of traversing the Huffman tree to find a successor which has the same frequency with current node then swap them and increase the frequency until reach to the root. The Vitter's algorithm finds the leader of the current node’s block and uses a Sliding Up Mechanism to slide and swap the current node into the right position, then increase the frequency and repeat this progress until it reaches the root.
+        \item Step-by-Step process:
+        \begin{itemize}
+            \item \textbf{Increment}
+            \begin{itemize}
+                \item Increase the frequency of the current node by one.
+            \end{itemize}
+            \item \textbf{Determine the Weight Block}
+            \begin{itemize}
+                \item Find the block that the current node belongs to based on its frequency.
+            \end{itemize}
+            \item \textbf{Find the leader of that block}
+            \begin{itemize}
+                \item Find the Node that has the highest order in that block.
+            \end{itemize}
+            \item \textbf{Swap (if necessary)}
+            \begin{itemize}
+                \item If the current node is already the leader, there is no need to swap.
+                \item Otherwise, swap the current node and the leader.
+            \end{itemize}
+            \item \textbf{Move to the Parent}
+            \begin{itemize}
+                \item Slide the current node to its parent.
+            \end{itemize}
+        \end{itemize}
+    \end{itemize}
+    \item \textbf{The improvement}
+    \begin{itemize}
+        \item \textbf{Faster tree update:} The FGK algorithm might need to swap nodes multiple times, but for V algorithm by carefully managing blocks of nodes and an implicit numbering scheme, Vitter's algorithm guarantees that the tree update operation takes amortized constant time (O(1)). Some updates might take longer to run, but on average, updates over a long sequence of operations are constant. This leads to significantly faster overall encoding and decoding.
+        \item \textbf{More efficient tree restructuring:} FGK algorithm when restoring the sibling property after increment often involves a series of swapping operations. On the other hand, Vitter's update procedure is designed to minimize node movements.
+    \end{itemize}
+    \item \textbf{The trade offs}
+    \begin{itemize}
+        \item \textbf{Increased complexity:} The primary trade-off is that the algorithm is more complex and hard to understand and implement correctly compared to FGK.
+        \item \textbf{Similar Compression:} Both FKG and V algorithms have a generally similar compression ratio. Neither of them provides a significantly better performance than the other.
+    \end{itemize}
+    \item \textbf{Complexity}
+    \begin{itemize}
+        \item \textbf{Time complexity:} O(N log M) because every update(occurs on every symbol) needs to traverse from the root to the symbol leaf (Huffman tree height on average is about log M).
+        \item \textbf{Space complexity:} O(M) since the algorithm needs to store the Huffman tree.
+    \end{itemize}
+    \item \textbf{Conclusion}
+    \begin{itemize}
+        \item Vitter’s algorithm built upon FGK’s principles and provided a mathematically proven faster method to update the Huffman tree, achieving amortized constant runtime that makes it helpful for big data sets with large character sets. This speed comes with a cost of increasingly difficult implementation.
+    \end{itemize}
+\end{enumerate}
+\subsection{Similarities and dissimilarities}
+\begin{enumerate}[label=\textbf{\Alph*.}]
+    \item \textbf{Similarities}
+    \begin{itemize}
+        \item \textbf{Core principle:} Both Static and Adaptive Huffman Coding algorithms are fundamentally similar since they are both based on the Huffman tree.
+        \item \textbf{Frequency-based compression:} Both algorithms assign shorter codes to more frequent symbols and longer codes to less frequent symbols
+        \item \textbf{Prefix-free code:} Both generate prefix codes (prefix-free codes), meaning no codeword is a prefix of another codeword.
+        \item \textbf{Variable-length code:} Unlike fixed-length schemes, both algorithms assign codes of different bit lengths. They share the strategy of minimizing the average code length by allocating shorter binary sequences to symbols that occur more often and longer sequences to less common symbols. 
+        \item \textbf{Decoding mechanic:} Although the trees are different(one static, one dynamic), the core decoding process for both involves traversing the Huffman tree from the root based on the incoming bits until a leaf node is reached.
+    \end{itemize}
+    \item \textbf{Dissimilarities}
+    \begin{itemize}
+        \item \textbf{Single pass processing:}
+        \begin{itemize}
+            \item For Static Huffman Coding, the algorithm needs two passes over the data (read the data twice): one to count frequency to build the Huffman tree and a second pass to encode using that Huffman tree.
+            \item For Adaptive Huffman Coding(FGK and Vitter’s algorithm) only needs a single pass over data to learn the frequency and update the Huffman tree as it processes the data. This is a necessity as in some scenarios the algorithm can read the data once (data stream).
+        \end{itemize}
+        \item \textbf{Adaptability:}
+        \begin{itemize}
+            \item Static Huffman Coding uses a single fixed Huffman tree based on the overall frequency of the data. If this tree is used on different data inputs with a divergent character frequency, the output code will be suboptimal for later data input.
+            \item The Huffman tree of FGK and V algorithm is dynamic and adaptive to the local frequency of the input data, as the character frequency changes the algorithm will reflect the change to the Huffman tree, which leads to better overall compression.
+        \end{itemize}
+        \item \textbf{Reduced overhead:}
+        \begin{itemize}
+            \item Static Huffman Coding needs to store and transmit the frequency table or the Huffman tree so the Decoder can reconstruct the Huffman tree. This adds a significant overhead for the algorithm, especially for the small data input.
+            \item For the Adaptive Huffman Coding, the Decoder will build the same adaptive tree, following the exact same update rule as the Encoder. Therefore, there is no need to explicitly store or transmit Huffman trees, eliminating this overhead.
+        \end{itemize}
+        \item \textbf{Suitabilities for complex data scheme:}
+        \begin{itemize}
+            \item For Static Huffman Coding, the algorithm generally needs to know the input data beforehand to calculate the frequency, making it less suitable for steaming applications where data arrives sequentially and the total size might be unknown.
+            \item The Adaptive Huffman Coding algorithm operates in a single pass and on the fly, so that it’s suitable for compressing data streams in real time application.
+        \end{itemize}
+    \end{itemize}
+\end{enumerate}
+

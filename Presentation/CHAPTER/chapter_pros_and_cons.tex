@@ -1,0 +1,18 @@
+\section{Advantage and disadvantage of the Static Huffman Coding}
+\subsection{Advantages}
+\begin{itemize}
+    \item Huffman Coding using the probability of the symbol, helps produce an optimal prefix code. The code generated is guaranteed to be the lowest average code length for this specific distribution.
+    \item Huffman Coding is a lossless encoding technique, guaranteeing the data is intact after decode.
+    \item Huffman Coding has a relatively simple implementation.
+    \item Huffman Coding is widely used and supported (JPEG, MP3, DEFLATE)
+    \item Decoding a Huffman encoded code is generally very fast since it only needs to traverse the Huffman Tree.
+\end{itemize}
+\subsection{Disadvantages}
+\begin{itemize}
+    \item Require a prior knowledge of the data (frequencies) to build Huffman Tree to encode input.
+    \item Huffman Coding is not adapted, if the frequencies slightly differ from the start the compression ratio will be suboptimal.
+    \item The overhead of storing the Huffman Tree is also a problem.
+    \item Huffman Coding treats each symbol independently, so it can’t take advantage of correlations between symbols ("q" is almost always followed by "u").
+    \item Can be inefficient for super large character sets as already shown in the IO section.
+    \item Vulnerable to Bits error. A single bit change can resolve the whole decoded text being wrong since Huffman Coding does not have an error correction part.
+\end{itemize}

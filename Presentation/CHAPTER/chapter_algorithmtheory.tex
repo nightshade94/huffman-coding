@@ -1,0 +1,637 @@
+\section{Algorithm Theory}
+\subsection{Implementation detail}
+\begin{enumerate}[label=\textbf{\Alph*.}]
+    \item \textbf{Data structure}
+    \begin{itemize}
+        \item \textbf{Huffman tree node structure}
+        \begin{minted}[
+            frame=lines,
+            framesep=2mm,
+            baselinestretch=1.2,
+            bgcolor=LightGray,
+            fontsize=\footnotesize,
+            linenos
+        ]{cpp}
+struct HuffmanTreeNode
+{
+    int Freq = 0;
+    char Character = 0;    
+    HuffmanTreeNode *Left = nullptr, *Right = nullptr; 
+    HuffmanTreeNode();
+
+    HuffmanTreeNode(int Freq, char Character);
+    HuffmanTreeNode(int Freq, HuffmanTreeNode *left, HuffmanTreeNode *right);
+};
+\end{minted}
+        \begin{itemize}
+            \item Construct a Huffman tree node to store:
+            \begin{itemize}
+                \item \textbf{Frequency (Freq):} sum of its child if it’s an internal node or frequency of a symbol if it’s a leaf.
+                \item \textbf{Symbol (Character):} store the symbols if it is a leaf node else default is 0.
+                \item \textbf{Its child (Left, Right):} store the pointer point to left and right child node address.
+            \end{itemize}
+            \item There are 3 constructors:
+            \begin{itemize}
+                \item \textbf{HuffmanTreeNode():} to create a default node with 0 frequency, 0 character, and no child (null pointer).
+                \item \textbf{HuffmanTreeNode(int Freq, char Character):} to create a leaf node with given frequency and the symbols it contains.
+                \item \textbf{HuffmanTreeNode(int Freq, HuffmanTreeNode *left, HuffmanTreeNode *right):} to create an internal node with the given frequency (usually sum of its child) and assign the address of its child to left and right.
+            \end{itemize}
+        \end{itemize}
+        \newpage
+        \item \textbf{Priority Queue (Min-Heap):}
+        \begin{minted}[
+            frame=lines,
+            framesep=2mm,
+            baselinestretch=1.2,
+            bgcolor=LightGray,
+            fontsize=\footnotesize,
+            linenos
+        ]{cpp}
+struct PriorityQueue
+{
+    HuffmanTreeNode **NodeArray;
+    int NumberOfElement, CurrentNumberOfElement = 0;
+    PriorityQueue() = default;
+    PriorityQueue(int n);
+    
+    ~PriorityQueue();
+    
+    void Init(int n);
+    
+    void sift(int l, int r);
+    
+    void Push(HuffmanTreeNode *x);
+    
+    HuffmanTreeNode *Pop();
+
+    HuffmanTreeNode *Top();
+};
+\end{minted}
+        \begin{itemize}
+            \item Construct a priority queue for inserting nodes and getting the highest priority node (the smallest frequency node) to construct the Huffman tree.
+            \begin{itemize}
+                \item \textbf{NodeArray:} stores the pointer to the  Huffman Node.
+                \item \textbf{NumOfElement:} capacity (size) of the priority queue.
+                \item \textbf{CurrentNumberOfElement:} number of Nodes in the queue.
+            \end{itemize}
+            \item There are 3 constructors: 
+            \begin{itemize}
+                \item One for default priority queue
+                \item \textbf{PriorityQueue(int n):} Create a priority queue with capacity = n.
+                \item \textbf{$\sim$ PriorityQueue():} deconstruct the Queue (delete the allocated memory in the NodeArray).
+            \end{itemize}
+            \item Implement some functions for queue feature:
+            \begin{itemize}
+                \item \textbf{Init():} Initialize the priority queue with capacity n.
+                \item \textbf{Sift(int l, int r):} perform sift down (min heap) to maintain the heap property.
+                \item \textbf{Pop():} to get the highest priority node and pop it out of the queue, then use sift to construct the root of the heap.
+                \item \textbf{Top():} to get the highest priority node.
+\newpage
+\begin{minted}[
+            frame=lines,
+            framesep=2mm,
+            baselinestretch=1.2,
+            bgcolor=LightGray,
+            fontsize=\footnotesize,
+            linenos,breaklines
+        ]{cpp}
+void PriorityQueue::Push(HuffmanTreeNode *x)
+{
+    NodeArray[CurrentNumberOfElement++] = x;
+    int NewNumberIndex = CurrentNumberOfElement - 1; 
+    while (NewNumberIndex >= 0 && NodeArray[(NewNumberIndex - 1) / 2]->Freq > NodeArray[NewNumberIndex]->Freq)
+    {
+        std::swap(NodeArray[NewNumberIndex], NodeArray[(NewNumberIndex - 1) / 2]); 
+        NewNumberIndex = (NewNumberIndex - 1) / 2; 
+    }
+}
+\end{minted}
+                \item \textbf{Push(HuffmanTreeNode *x):} to add new element into the queue
+                \begin{itemize}
+                    \item Add the element x to the end of queue
+                    \item Increase the current element by one.
+                    \item Get the index of x and compare it to its parent 	((NewnumberIndex - 1)/2). If x frequency is smaller, swap x with its parent. 
+                    \item Repeat the previous progress until x frequency larger than its parent or x is the root.
+                \end{itemize}
+            \end{itemize}
+        \end{itemize}
+        \item \textbf{Label}
+        \begin{itemize}
+            \item An array to store the binary code for characters to encode.
+        \end{itemize}
+        \item \textbf{Trie node structure (for the decoding progress)}
+\begin{minted}[
+            frame=lines,
+            framesep=2mm,
+            baselinestretch=1.2,
+            bgcolor=LightGray,
+            fontsize=\footnotesize,
+            linenos
+        ]{cpp}
+struct TrieNode
+{
+    char Character = 0; 
+    TrieNode *Left, *Right;
+
+    TrieNode();
+    TrieNode(char Character);
+    TrieNode(TrieNode *left, TrieNode *right);
+};
+\end{minted}
+        \begin{itemize}
+            \item To decode Huffman code, the algorithm need to build a tree similar to the Huffman tree in the encode process.
+            \item Trie Node has a character variable to store symbols if it is a leaf node and two childs left and right.
+            \item There are 3 constructors, similar to Huffman tree.
+        \end{itemize}
+    \end{itemize}
+    \item \textbf{Encoding progress:}
+    \begin{itemize}
+        \item \textbf{Compute the frequency of each character:}
+\begin{minted}[
+            frame=lines,
+            framesep=2mm,
+            baselinestretch=1.2,
+            bgcolor=LightGray,
+            fontsize=\footnotesize,
+            linenos
+        ]{cpp}
+while (FileToEncode.get(Character))
+    Freq[Character]++;
+\end{minted}
+        \begin{itemize}
+            \item Open a stream to input data (file), then read characters individually and increase frequency. 
+        \end{itemize}
+        \item \textbf{Build Huffman tree:}
+\begin{minted}[
+            frame=lines,
+            framesep=2mm,
+            baselinestretch=1.2,
+            bgcolor=LightGray,
+            fontsize=\footnotesize,
+            linenos,breaklines, 
+        ]{cpp}
+for (int i = 0; i < MAX_N; i++)
+{
+    if (Freq[i]) 
+    {
+        HuffmanTreeNode *NewNode = new HuffmanTreeNode(Freq[i], (char)i);
+        PQ.Push(NewNode);
+    }
+}
+\end{minted}
+        \begin{itemize}
+            \item Browse through each symbol, check if it appears in the input data then allocate a memory of \textbf{HuffmanTreeNode} to store its frequency and symbol.
+            \item Push the newly created node into the priority queue.
+\begin{minted}[
+            frame=lines,
+            framesep=2mm,
+            baselinestretch=1.2,
+            bgcolor=LightGray,
+            fontsize=\footnotesize,
+            linenos,breaklines
+        ]{cpp}
+while (PQ.CurrentNumberOfElement >= 2)
+{
+    HuffmanTreeNode *leftNode = PQ.Pop(), *rightNode = PQ.Pop();
+    if (!leftNode || !rightNode)
+    {
+        std::cerr << "Error: Priority queue became empty." << std::endl;
+        delete leftNode;
+        delete rightNode;
+        return;
+    }
+    HuffmanTreeNode *NewNode;
+    NewNode = new HuffmanTreeNode(leftNode->Freq + rightNode->Freq, leftNode, rightNode);                     
+}
+\end{minted}
+            \item Get the first and the second smallest frequency node out of the priority queue.
+            Then, check if valid Node (not null Node)
+            \item Create an internal node which have frequency is the sum of them and its left child is the smaller frequency node, the rest is its right node.
+            \item Push that internal Node back into the priority queue
+            \item Repeat the progress until there is just one Node in the queue. That node will be the root of the Huffman tree.
+        \end{itemize}
+        \newpage
+        \item \textbf{Assign binary code to each symbol:}
+\begin{minted}[
+            frame=lines,
+            framesep=2mm,
+            baselinestretch=1.2,
+            bgcolor=LightGray,
+            fontsize=\footnotesize,
+            linenos
+        ]{cpp}
+void HuffmanEncoding::Labeling(std::string *LabelArray, 
+                               HuffmanTreeNode *CurrentNode, std::string Label)
+{
+    if (!CurrentNode)
+        return;
+    if (!CurrentNode->Left && !CurrentNode->Right)
+    {
+        FileSize += Freq[CurrentNode->Character] * Label.size();
+        LabelArray[CurrentNode->Character] = Label;
+        return;
+    }
+    if (CurrentNode->Left)
+        Labeling(LabelArray, CurrentNode->Left, Label + '0');
+    if (CurrentNode->Right)
+        Labeling(LabelArray, CurrentNode->Right, Label + '1');
+}
+\end{minted}
+        \begin{itemize}
+            \item Use the Depth First Search traversal algorithm to travel the Huffman tree.
+            \item Check if the current node is not a null node.
+            \item If the current node is a leaf node, then calculate the \textbf{FileSize += code length * frequency of that symbol}. Assign binary code (Label) to the ASCII value of the symbols position in the \textbf{LabelArray}.
+            \item If the current node is the internal node, go to its left child and add ‘0’ to the code. Then, go to its right child and add ‘1’ to the code.
+        \end{itemize}
+        \item \textbf{Encode file:}
+\begin{minted}[
+            frame=lines,
+            framesep=2mm,
+            baselinestretch=1.2,
+            bgcolor=LightGray,
+            fontsize=\footnotesize,
+            linenos,breaklines
+        ]{cpp}
+int EncodedPointer = 0;
+Buffer = 0;
+NumberOfBit = 0;
+size_t bufferSize = (FileSize == 0) ? 1 : (FileSize / 8) + ((FileSize % 8) != 0);
+if (Encoded != nullptr)
+    delete[] Encoded;
+Encoded = new char[bufferSize];
+\end{minted}
+        \begin{itemize}
+            \item Calculate the buffer size to write binary code in the \textbf{Encoded} char array to file.
+            \item Allocated memory for Encoded array based on the bufferSize.
+            \newpage
+\begin{minted}[
+            frame=lines,
+            framesep=2mm,
+            baselinestretch=1.2,
+            bgcolor=LightGray,
+            fontsize=\footnotesize,
+            linenos
+        ]{cpp}
+while (FileToEncode.get(Character))
+{
+    for (char Bit : Label[Character]) 
+    {
+        Buffer <<= 1;
+        if (Bit == '1')
+            Buffer |= 1;
+        NumberOfBit++; 
+        if (NumberOfBit == 8)
+        {
+            Encoded[EncodedPointer++] = Buffer; 
+            Buffer = 0;
+            NumberOfBit = 0;
+        }
+    }
+}
+\end{minted}
+            \item Read symbols in the input file one by one, take its code and put it in the buffer.
+            \item When enough 8 bits are added to the buffer (size of char) then put the buffer into the \textbf{Encoded} array.
+\begin{minted}[
+            frame=lines,
+            framesep=2mm,
+            baselinestretch=1.2,
+            bgcolor=LightGray,
+            fontsize=\footnotesize,
+            linenos,breaklines
+        ]{cpp}
+EncodedFile.write((char *)&FileSize, sizeof FileSize);
+
+size_t bytesToWrite = (FileSize == 0) ? 0 : (FileSize / 8) + ((FileSize % 8) != 0);
+
+if (Encoded && bytesToWrite > 0)
+{
+    EncodedFile.write(Encoded, bytesToWrite);
+}
+\end{minted}
+            \item Write the file size and the \textbf{Encoded} array to the encoded file.
+        \end{itemize}
+        \newpage
+        \item \textbf{Write the Huffman code to file:}
+\begin{minted}[
+            frame=lines,
+            framesep=2mm,
+            baselinestretch=1.2,
+            bgcolor=LightGray,
+            fontsize=\footnotesize,
+            linenos,breaklines
+        ]{cpp}
+void HuffmanEncoding::WriteHuffmanCode(std::string HuffmanCodeFileName)
+{
+    std::ofstream HuffmanCode(HuffmanCodeFileName);
+    if (!HuffmanCode.good())
+    {
+        std::cerr   << "Error: Could not open Huffman code output file: " << HuffmanCodeFileName << std::endl;
+        return;
+    }
+    if (!IsLabeled)
+    {
+        std::cerr   << "Error: Cannot write Huffman codes, labeling not complete." << std::endl;
+        HuffmanCode.close();
+        return;
+    }
+    for (int i = 0; i < MAX_N; i++)
+    {
+        if (Freq[i] > 0)
+        {
+            HuffmanCode << i << ' ' << Label[i] << '\n';
+        }
+    }
+
+    HuffmanCode.close();
+}
+\end{minted}
+        \begin{itemize}
+            \item To serve the decode progress, the algorithm needs to store each symbol with its Huffman code.
+            \item For each distinct symbol, write the ASCII value and its Huffman code to another file.
+        \end{itemize}
+    \end{itemize}
+    \newpage
+    \item \textbf{Decoding progress:}
+    \begin{itemize}
+        \item \textbf{Build Trie:}
+\begin{minted}[
+            frame=lines,
+            framesep=2mm,
+            baselinestretch=1.2,
+            bgcolor=LightGray,
+            fontsize=\footnotesize,
+            linenos,breaklines
+        ]{cpp}
+void DecodeHuffman::ReadHuffmanCode(std::string HuffmanCodeFileName)
+{
+    std::ifstream HuffmanCode(HuffmanCodeFileName);
+    if (!HuffmanCode.good())
+    {
+        std::cerr << "Error: Could not open Huffman code file: " << HuffmanCodeFileName << std::endl;
+        IsHuffmanTreeGood = false; 
+        return;
+    }
+    while (HuffmanCode >> CharacterCode) 
+    {
+        HuffmanCode >> Binary;
+        TrieObject.Add(Binary, (char)CharacterCode);
+    }
+    IsHuffmanTreeGood = true;
+    HuffmanCode.close();
+}
+\end{minted}
+        \begin{itemize}
+            \item Open a stream to file which contains ASCII values of symbols and their Huffman code.
+            \item Read the input data (symbols and code) and add it to the trie.
+\begin{minted}[
+            frame=lines,
+            framesep=2mm,
+            baselinestretch=1.2,
+            bgcolor=LightGray,
+            fontsize=\footnotesize,
+            linenos,breaklines
+        ]{cpp}
+void Trie::Add(std::string Binary, char Character)
+{
+    if (Head == nullptr) 
+        Head = new TrieNode();
+
+    TrieNode *CurrentNode = Head; 
+    for (int i = 0; i < Binary.size(); i++)
+    {
+        if (Binary[i] == '1')
+        {
+            if (CurrentNode->Right == nullptr)
+                CurrentNode->Right = new TrieNode();
+            CurrentNode = CurrentNode->Right; 
+        }
+        else
+        {
+            if (CurrentNode->Left == nullptr) 
+                CurrentNode->Left = new TrieNode();
+            CurrentNode = CurrentNode->Left;
+        }
+    }
+    CurrentNode->Character = Character;
+}
+\end{minted}
+            \item Check if trie does not contain any node, allocate root node memory for it. 
+            \item Start from the root and read the binary code; if bit is ‘1’, then go to the right node; if bit is ‘0’ go to the left node (if the child does not exist , allocate new memory for it).
+            \item When reading the last bit, store the ASCII value of the symbol at the current node (leaf node).
+        \end{itemize}
+        \item \textbf{Decode file:}
+\begin{minted}[
+            frame=lines,
+            framesep=2mm,
+            baselinestretch=1.2,
+            bgcolor=LightGray,
+            fontsize=\footnotesize,
+            linenos,breaklines
+        ]{cpp}
+while (EncryptedFile.read(&Character, 1))
+{
+    for (int i = 7; i >= 0; i--
+    {
+        if (FileSize <= 0) 
+            break;
+        if (Character & (1 << i))
+            CurrentNode = CurrentNode->Right;
+        else
+            CurrentNode = CurrentNode->Left;
+
+        if (!CurrentNode)
+        {
+            std::cerr << "Error: Decoding error - encountered invalid path in Huffman Trie." << std::endl;
+            EncryptedFile.close();
+            IsInputValid = false;
+            return;            
+        }
+        if (isLeaf(CurrentNode))
+        {
+            DecodedString.push_back(CurrentNode->Character); 
+            CurrentNode = TrieObject.Head; 
+        }
+        --FileSize;
+    }
+}
+\end{minted}
+        \begin{itemize}
+            \item Open output stream to \textbf{encrypted} file.
+            \item Read each 8 bytes in the file store to \textbf{Character}. Browse the binary code in \textbf{Character} from left to right to travel trie from the root. If bit is ‘0’ go to the left child and vice versa.
+            \item When meeting a leaf node, push the symbol in that node to \textbf{DecodedString} and assign the current node by the root.
+            \item Repeat the progress until the algorithm reaches the end of file.
+            \item Then, write the \textbf{DecodedString} to the encrypted file.
+        \end{itemize}
+    \end{itemize}
+\end{enumerate}
+    \subsection{Complexity:}
+    \begin{enumerate}[label=\textbf{\Alph*.}]
+        \item \textbf{Time complexity:}
+        \begin{itemize}
+            \item L is the number of symbols in the input data.
+            \item N is the number of distinct symbols.
+            \item \textbf{Build Huffman tree:}
+            \begin{itemize}
+                \item \textbf{Frequency Calculation:}
+                \begin{itemize}
+                    \item Browse each symbol in the input data to count its frequency: $O(L)$.
+                    \item Total cost: $O(L)$.
+                \end{itemize}
+                \item \textbf{Priority Queue (Min-Heap):}
+                \begin{itemize}
+                    \item Use Min-heap structure to find the highest priority (smallest frequency) element: $O(logN)$.
+                    \item Add all nodes into the queue: $O(N)$.
+                    \item After adding each node, the priority queue has to swap that node into the correct position according to heap structure: $O(NlogN)$.
+                    \item Total cost: $O(NlogN)$
+                \end{itemize}
+                \item \textbf{Build Huffman tree:}
+                \begin{itemize}
+                    \item Get the first smallest frequency node in the priority queue: $O(1)$.
+                    \item Pop out the root and find a new root of heap structure in queue: $O(logN)$.
+                    \item Get the second smallest frequency node and pop out it: $O(logN)$.
+                    \item Create an internal node to connect 2 nodes just taken out: $O(1)$.
+                    \item Add the internal node into the queue: $O(logN)$.
+                    \item Get node 2 node until there is only one node in the queue take n - 1 times: $O(N)$.
+                    \item Total cost: $O(NlogN)$.
+                \end{itemize}
+                \item \textbf{Average time complexity to build a Huffman tree:}
+                \begin{itemize} 
+                    \item $O(L) + O(NlogN) + O(NlogN) = O(L + NlogN)$.
+                \end{itemize}
+            \end{itemize}
+            \item \textbf{Encoding progress:}   
+            \begin{itemize}
+                \item Build a Huffman tree of the input data: $O(L + NlogN)$.
+                \item Traverse the Huffman tree to assign a code to each symbol.
+                \begin{itemize}
+                    \item Meet all internal nodes one time: $O(N)$.
+                    \item Meet all leaf one time: $O(N)$.
+                    \item Store code for each symbol: $O(N)$
+                    \item Total cost: $O(3N) = O(N)$.
+                \end{itemize}
+                \item Replacing symbols with Huffman Codes:
+                \begin{itemize}
+                    \item Look up for a code of symbol: $O(1)$
+                    \item Iterating through the input data: $O(L)$
+                    \item Replace each symbol in input data with code have length C: $O(LC)$.
+                    \item Total cost: $O(LC)$.
+                \end{itemize}
+                \item \textbf{The best case complexity:} The code length of each symbol is $logN$, so $C = logN$.
+                \begin{itemize}
+                    \item $O(L + NlogN) + O(N) + O(LlogN) = O(L + LlogN)$.
+                \end{itemize}
+                \item \textbf{Worst case:} The frequency of symbols form similar to a Fibonacci sequence.
+                \begin{itemize}
+                    \item The Huffman coding greedy always combines the two smallest frequency nodes. Since they are similar to Fibonacci numbers, the sum of two \\smallest frequencies will always be smaller than all node frequency. 
+                    \item The Huffman tree is not balanced, it seems like a linked list rather than a balanced binary tree.
+                    \item The longest length of the Huffman code is N, so $C = N$.
+                    \item \textbf{Time complexity:} $O(L + NlogN) + O(N) + O(LN) = O(L + LN)$
+                \end{itemize}
+            \end{itemize}
+            \item \textbf{Decoding progress:}
+            \begin{itemize}
+                \item Read the symbols with their codes in frequency file: $O(NC)$.
+                \item Build trie (similar to Huffman tree):
+                \begin{itemize}
+                    \item With each symbol, create a path on trie base on its binary code length C : $O(NC)$.
+                \end{itemize}
+                \item Replace Huffman codes with symbols
+                \begin{itemize}
+                    \item Read each bit in the encoded input data: $O(LC)$.
+                    \item Traverse the trie to find symbol of each code: $O(LC)$.
+                    \item Replace the code with symbol: $O(L)$.
+                    \item Total cost: $O(2LC) + O(L) = O(LC)$.
+                \end{itemize}
+                \item \textbf{The best case complexity:} The code length of each symbol is $logN$, so $C = logN$.
+                \begin{itemize}
+                    \item $O(NlogN) + O(NlogN) + O(LlogN) = O(LlogN)$
+                \end{itemize}
+                \item \textbf{Worst case:} The frequency of symbols form similar to a Fibonacci sequence.
+                \begin{itemize}
+                    \item $O(N^2) + O(N^2) + O(LN) = O(LN)$.
+                \end{itemize}
+            \end{itemize}
+        \end{itemize}
+        \item \textbf{Space complexity:}
+        \begin{itemize}
+            \item \textbf{Huffman code:}
+            \begin{itemize}
+                \item An array to store the frequency of symbols: O(N).
+                \item Huffman tree:
+                \begin{itemize}
+                    \item N - 1 internal nodes: $O(N - 1)$.
+                    \item N leaf nodes: $O(N)$.
+                    \item Total cost: $O(2N - 1) = O(N)$.
+                \end{itemize}
+                \item An array to store code of each symbol: $O(NC)$.
+                \item Total cost: $O(N) + O(N) + (NC) = O(NC)$.
+            \end{itemize}
+            \item \textbf{Encode progress and Decode progress:}
+            \begin{itemize}
+                \item Huffman code: $O(NC)$.
+                \item Encoded string of input data: $O(LC)$.
+                \item \textbf{The best case complexity:} The code length of each symbol is $logN$, so $C = logN$.
+                \begin{itemize}
+                    \item $O(NlogN)  + O(LlogN) = O(LlogN)$
+                \end{itemize}
+                \item \textbf{Worst case:} The frequency of symbols form a Fibonacci sequence.
+                \begin{itemize}
+                    \item $O(N^2) + O(LN) = O(LN)$.
+                \end{itemize}
+            \end{itemize}
+        \end{itemize}
+    \end{enumerate}
+\subsection{Mathematically optimal in Huffman coding:}
+    \begin{enumerate}[label=\textbf{\Alph*.}]
+        \item \textbf{Definition of entropy:}
+        \begin{itemize}
+            \item In information theory, the entropy of a random variable quantifies the average level of uncertainty or information associated with the variable's potential states or possible outcomes.\cite{WikipediaEntropy}
+            \item In Huffman Coding, Entropy is the minimum average number of bits needed per symbol.
+            \item In information theory, the self-information is a basic quantity derived from the probability of a particular event(data, bits) occurring from a random variable.\cite{wikipedia_information_content}
+            \[
+                I(x) := -\log_b [\Pr(x)] = -\log_b (P).
+            \]
+            \item Let source \( X \) have \( n \) symbols \( S = \{s_1, s_2, \dots, s_n\} \) with probabilities \( P = \{p_1, p_2, \dots, p_n\} \), the entropy \( H(X) \) is given by:
+            \[
+                H(X) = -\sum_{a=1}^{n} p_a \log_2 p_a
+            \]
+            \begin{itemize}
+                \item $p_a$ is the probability of symbol $s_a$.
+                \item Using the logarithm base 2  ensures that entropy is measured in bits.
+            \end{itemize}
+        \end{itemize}
+        \item \textbf{Entropy and Huffman Coding Efficiency}
+        \begin{itemize}
+            \item If the algorithm encodes symbol a in the input string A with a binary code of length $l_a$, the expected length for encoding one symbol is:
+            \[
+                L = \sum_{a \in A} p_a l_a,
+            \]
+            \begin{itemize}
+                \item $p_a$ is the probability of symbols a
+                \item $l_a$ is the length of binary code for symbols a.
+            \end{itemize}
+            \item To prove that Huffman coding algorithm is a near-optimal encoding, we need to prove that the value of L is always close to the value of H(X). This mean proves that:
+            \[
+                H(X) \leq L < H(X) + 1.
+            \]
+            \item Since the length of a symbol must be an integer and the minimum length of a symbol is the self-information of symbol.
+            \[
+                l_a = \lceil -\log_2 p_a \rceil
+            \]
+            \item Which mean:
+            \[
+                -\log_2 p_a \leq l_a < -\log_2 p_a + 1
+            \]
+            \item Multiply 3 expression with sum of $p_a$
+            \[
+                \sum p_a (-\log_2 p_a) \leq \sum p_a l_i < \sum p_a (-\log_2 p_a + 1)
+            \]
+            \[
+                \Leftrightarrow -\sum p_a (\log_2 p_a) \leq L < -\sum p_a \log_2 p_a + \sum p_a
+            \]
+            \[
+                \Leftrightarrow H(X) \leq L < H(X) + 1
+            \]
+        \end{itemize}
+    \end{enumerate}
+    

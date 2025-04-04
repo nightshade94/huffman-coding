@@ -1,0 +1,28 @@
+% Header and Footer
+\pagestyle{fancy}
+\lhead{\tikz[baseline=(X.base)] \node[fill=cyan!80!blue, text=white, font=\bfseries, rounded corners=5pt, inner sep=5pt] (X) {Data structures and Algorithms};}
+\rhead{\textbf{Static Huffman compression}}
+\lfoot{\textbf{Group 4 | Class 24C06}}
+\cfoot{}
+\rfoot{\tikz[baseline=(X.base)] \node[fill=cyan!80!blue, text=white, font=\bfseries, rounded corners=10pt, inner sep=10pt] (X) {\thepage};}
+\setlength{\headheight}{24pt}
+\setlength{\footskip}{30pt}
+% Đổi màu cho đường kẻ header và footer
+\renewcommand{\headrulewidth}{2pt}
+\renewcommand{\footrulewidth}{2pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{cyan}\leaders\hrule height \headrulewidth\hfill}}
+\renewcommand{\footrule}{\hbox to\headwidth{\color{cyan}\leaders\hrule height \footrulewidth\hfill}}
+% Thêm dấu chấm sau mỗi section
+\renewcommand{\cftsecaftersnum}{.}
+\renewcommand{\cftsubsecaftersnum}{.}
+
+\cftsetindents{section}{0em}{2em}
+\cftsetindents{subsection}{2em}{2em}
+\cftsetindents{subsubsection}{4em}{1em}
+\cftsetindents{paragraph}{3.5em}{1em}
+\cftsetindents{subparagraph}{4em}{1em}
+
+\titleformat{\paragraph}[block]{\normalfont\normalsize\bfseries}{\theparagraph}{0.5em}{}
+\titleformat{\subparagraph}[block]{\normalfont\normalsize\bfseries}{\theparagraph}{0.5em}{}
+\newpage
+\pagenumbering{arabic}

@@ -1,0 +1,101 @@
+\documentclass[a4paper, 12pt]{article}
+\usepackage[utf8]{vietnam}
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{fancyhdr}
+\usepackage{array}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{blindtext}
+\usepackage{tabularx}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{makecell}
+\setcounter{tocdepth}{5}
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage{adjustbox}
+\usepackage{xcolor} 
+\usepackage{tikz}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{csquotes}
+\usepackage{array}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    filecolor=magenta,
+    citecolor=blue,
+    urlcolor=blue,
+}
+\usepackage{supertabular}
+\usepackage{biblatex}
+\addbibresource{ref.bib}
+
+\geometry{
+    a4paper,
+    total={170mm,257mm},
+    left=20mm,
+    top=20mm,
+}
+\usepackage{lipsum}
+\usepackage{multicol}
+\usepackage[svgnames,table]{xcolor}
+\usepackage{minted}
+\definecolor{LightGray}{gray}{0.9}
+\usepackage{amsmath}
+\begin{document}
+
+\include{cover_page}
+
+\tableofcontents
+\include{header_footer}
+
+%Thông tin nhóm
+\include{CHAPTER/chapter_information}
+\newpage
+
+% Trật tự trình bày:
+% 1. Introduction to Compression: Giới thiệu tổng quan về nén dữ liệu.
+% 2. Introduction to Huffman Coding: Giới thiệu về mã hóa Huffman.
+% 3. Algorithm Theory: Chi tiết thuật toán.
+% 4. Algorithm Visualization: Minh họa thuật toán.
+% 5. Algorithm Variances: Các biến thể của thuật toán.
+% 6. Performance Experiment: Thí nghiệm hiệu suất.
+% 7. Pros and Cons: Ưu và nhược điểm của thuật toán.
+% 8. Discover the Application of Algorithm: Khám phá ứng dụng của thuật toán.
+% 9. Compare with other Compression Algorithms: So sánh với các thuật toán nén khác. 
+
+\include{CHAPTER/chapter_compression}
+\newpage
+
+\include{CHAPTER/chapter_introduction}
+\newpage
+
+\include{CHAPTER/chapter_algorithmtheory}
+\newpage
+
+\include{CHAPTER/chapter_visualize}
+\newpage
+
+\include{CHAPTER/chapter_adaptive}
+\newpage 
+
+\include{CHAPTER/chapter_othervariants}
+\newpage
+
+\include{CHAPTER/chapter_testing}
+\newpage
+
+\include{CHAPTER/chapter_pros_and_cons}
+\newpage
+
+\include{CHAPTER/chapter_application}
+\newpage
+
+\include{CHAPTER/chapter_comparision}
+\newpage
+
+\nocite{*}
+\printbibliography[]
+\end{document}
