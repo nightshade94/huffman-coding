@@ -88,7 +88,7 @@ Thêm flag `-v` để xem thống kê tỉ lệ nén và tốc độ xử lý.
 Hãy bảo đảm `clang-format` pass và tất cả test xanh trước khi gửi PR nhé!
 
 ## 📜 Giấy phép
-Phân phối theo **MIT License**. Thoải mái sử dụng trong dự án cá nhân hay thương mại, chỉ cần giữ nguyên thông tin giấy phép.
+Trước khi sử dụng các phần trong trình bày trên, hãy gửi email xin phép đến nightshade24.dev@gmail.com
 
 ## 💡 Nguồn cảm hứng
 Thuật toán nguyên bản bởi David A. Huffman (1952). Tham khảo thêm:
